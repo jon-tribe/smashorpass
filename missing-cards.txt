@@ -1,0 +1,11 @@
+electro-spirit
+giant-snowball
+archers
+minions
+royal-giant
+x-bow
+royal-recruits
+giant-skeleton
+guards
+royal-chef
+spirit-empress

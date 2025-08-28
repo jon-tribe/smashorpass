@@ -1,0 +1,882 @@
+[
+  {
+    "id": "skeletons",
+    "name": "Skeletons",
+    "imageUrl": "/images/skeletons.png",
+    "description": "Four fast, very weak melee fighters",
+    "rarity": "common",
+    "elixir": 1
+  },
+  {
+    "id": "ice-spirit",
+    "name": "Ice Spirit",
+    "imageUrl": "/images/ice-spirit.png",
+    "description": "Creatures that freeze enemies",
+    "rarity": "common",
+    "elixir": 1
+  },
+  {
+    "id": "fire-spirit",
+    "name": "Fire Spirit",
+    "imageUrl": "/images/fire-spirit.png",
+    "description": "Fiery creatures that explode",
+    "rarity": "common",
+    "elixir": 1
+  },
+  {
+    "id": "electro-spirit",
+    "name": "Electro Spirit",
+    "imageUrl": "/images/electro-spirit.png",
+    "description": "Electric creature that stuns enemies",
+    "rarity": "common",
+    "elixir": 1
+  },
+  {
+    "id": "heal-spirit",
+    "name": "Heal Spirit",
+    "imageUrl": "/images/heal-spirit.png",
+    "description": "Creature that heals allies",
+    "rarity": "common",
+    "elixir": 1
+  },
+  {
+    "id": "goblins",
+    "name": "Goblins",
+    "imageUrl": "/images/goblins.png",
+    "description": "Three fast, unarmored melee fighters",
+    "rarity": "common",
+    "elixir": 2
+  },
+  {
+    "id": "spear-goblins",
+    "name": "Spear Goblins",
+    "imageUrl": "/images/spear-goblins.png",
+    "description": "Three unarmored ranged attackers",
+    "rarity": "common",
+    "elixir": 2
+  },
+  {
+    "id": "bats",
+    "name": "Bats",
+    "imageUrl": "/images/bats.png",
+    "description": "Five fast, flying melee fighters",
+    "rarity": "common",
+    "elixir": 2
+  },
+  {
+    "id": "zap",
+    "name": "Zap",
+    "imageUrl": "/images/zap.png",
+    "description": "Lightning spell that stuns enemies",
+    "rarity": "common",
+    "elixir": 2
+  },
+  {
+    "id": "giant-snowball",
+    "name": "Giant Snowball",
+    "imageUrl": "/images/giant-snowball.png",
+    "description": "Slows and damages enemies",
+    "rarity": "common",
+    "elixir": 2
+  },
+  {
+    "id": "wall-breakers",
+    "name": "Wall Breakers",
+    "imageUrl": "/images/wall-breakers.png",
+    "description": "Two building-targeting melee fighters",
+    "rarity": "common",
+    "elixir": 2
+  },
+  {
+    "id": "archers",
+    "name": "Archers",
+    "imageUrl": "/images/archers.png",
+    "description": "Two unarmored ranged attackers",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "knight",
+    "name": "Knight",
+    "imageUrl": "/images/knight.png",
+    "description": "Tough melee fighter",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "minions",
+    "name": "Minions",
+    "imageUrl": "/images/minions.png",
+    "description": "Three fast, flying melee fighters",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "cannon",
+    "name": "Cannon",
+    "imageUrl": "/images/cannon.png",
+    "description": "Building that targets ground units",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "goblin-gang",
+    "name": "Goblin Gang",
+    "imageUrl": "/images/goblin-gang.png",
+    "description": "Three goblins and three spear goblins",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "skeleton-army",
+    "name": "Skeleton Army",
+    "imageUrl": "/images/skeleton-army.png",
+    "description": "Many fast, weak melee fighters",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "royal-delivery",
+    "name": "Royal Delivery",
+    "imageUrl": "/images/royal-delivery.png",
+    "description": "Spell that spawns a royal recruit",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "tesla",
+    "name": "Tesla",
+    "imageUrl": "/images/tesla.png",
+    "description": "Building that targets air and ground",
+    "rarity": "common",
+    "elixir": 4
+  },
+  {
+    "id": "mortar",
+    "name": "Mortar",
+    "imageUrl": "/images/mortar.png",
+    "description": "Building that targets buildings",
+    "rarity": "common",
+    "elixir": 4
+  },
+  {
+    "id": "bomb-tower",
+    "name": "Bomb Tower",
+    "imageUrl": "/images/bomb-tower.png",
+    "description": "Building that targets ground",
+    "rarity": "common",
+    "elixir": 4
+  },
+  {
+    "id": "goblin-hut",
+    "name": "Goblin Hut",
+    "imageUrl": "/images/goblin-hut.png",
+    "description": "Building that spawns spear goblins",
+    "rarity": "common",
+    "elixir": 4
+  },
+  {
+    "id": "furnace",
+    "name": "Furnace",
+    "imageUrl": "/images/furnace.png",
+    "description": "Building that spawns fire spirits",
+    "rarity": "common",
+    "elixir": 4
+  },
+  {
+    "id": "tombstone",
+    "name": "Tombstone",
+    "imageUrl": "/images/tombstone.png",
+    "description": "Building that spawns skeletons",
+    "rarity": "common",
+    "elixir": 3
+  },
+  {
+    "id": "goblin-cage",
+    "name": "Goblin Cage",
+    "imageUrl": "/images/goblin-cage.png",
+    "description": "Building that spawns a goblin brawler",
+    "rarity": "common",
+    "elixir": 4
+  },
+  {
+    "id": "barbarians",
+    "name": "Barbarians",
+    "imageUrl": "/images/barbarians.png",
+    "description": "Five tough melee fighters",
+    "rarity": "common",
+    "elixir": 5
+  },
+  {
+    "id": "barbarian-hut",
+    "name": "Barbarian Hut",
+    "imageUrl": "/images/barbarian-hut.png",
+    "description": "Building that spawns barbarians",
+    "rarity": "common",
+    "elixir": 7
+  },
+  {
+    "id": "royal-giant",
+    "name": "Royal Giant",
+    "imageUrl": "/images/royal-giant.png",
+    "description": "Building-targeting ranged attacker",
+    "rarity": "common",
+    "elixir": 6
+  },
+  {
+    "id": "x-bow",
+    "name": "X-Bow",
+    "imageUrl": "/images/x-bow.png",
+    "description": "Building that targets buildings",
+    "rarity": "common",
+    "elixir": 6
+  },
+  {
+    "id": "inferno-tower",
+    "name": "Inferno Tower",
+    "imageUrl": "/images/inferno-tower.png",
+    "description": "Building that targets tanks",
+    "rarity": "common",
+    "elixir": 5
+  },
+  {
+    "id": "battle-healer",
+    "name": "Battle Healer",
+    "imageUrl": "/images/battle-healer.png",
+    "description": "Melee fighter that heals",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "bomber",
+    "name": "Bomber",
+    "imageUrl": "/images/bomber.png",
+    "description": "Area damage ranged attacker",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "cannon-cart",
+    "name": "Cannon Cart",
+    "imageUrl": "/images/cannon-cart.png",
+    "description": "Building-targeting ranged attacker",
+    "rarity": "rare",
+    "elixir": 5
+  },
+  {
+    "id": "elixir-golem",
+    "name": "Elixir Golem",
+    "imageUrl": "/images/elixir-golem.png",
+    "description": "Tank that gives elixir when destroyed",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "firecracker",
+    "name": "Firecracker",
+    "imageUrl": "/images/firecracker.png",
+    "description": "Ranged attacker that explodes",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "fisherman",
+    "name": "Fisherman",
+    "imageUrl": "/images/fisherman.png",
+    "description": "Melee fighter that pulls enemies",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "flying-machine",
+    "name": "Flying Machine",
+    "imageUrl": "/images/flying-machine.png",
+    "description": "Flying ranged attacker",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "hunter",
+    "name": "Hunter",
+    "imageUrl": "/images/hunter.png",
+    "description": "Ranged attacker with spread damage",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "rascals",
+    "name": "Rascals",
+    "imageUrl": "/images/rascals.png",
+    "description": "Three fighters: boy, girl, and dog",
+    "rarity": "rare",
+    "elixir": 5
+  },
+  {
+    "id": "royal-hogs",
+    "name": "Royal Hogs",
+    "imageUrl": "/images/royal-hogs.png",
+    "description": "Four building-targeting melee fighters",
+    "rarity": "rare",
+    "elixir": 5
+  },
+  {
+    "id": "royal-recruits",
+    "name": "Royal Recruits",
+    "imageUrl": "/images/royal-recruits.png",
+    "description": "Six melee fighters",
+    "rarity": "rare",
+    "elixir": 6
+  },
+  {
+    "id": "skeleton-dragons",
+    "name": "Skeleton Dragons",
+    "imageUrl": "/images/skeleton-dragons.png",
+    "description": "Two flying melee fighters",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "zappies",
+    "name": "Zappies",
+    "imageUrl": "/images/zappies.png",
+    "description": "Three ranged attackers that stun",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "battle-ram",
+    "name": "Battle Ram",
+    "imageUrl": "/images/battle-ram.png",
+    "description": "Building-targeting melee fighter",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "cannoneer",
+    "name": "Cannoneer",
+    "imageUrl": "/images/cannoneer.png",
+    "description": "Ranged attacker with cannon",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "mega-minion",
+    "name": "Mega Minion",
+    "imageUrl": "/images/mega-minion.png",
+    "description": "Flying melee fighter",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "dart-goblin",
+    "name": "Dart Goblin",
+    "imageUrl": "/images/dart-goblin.png",
+    "description": "Fast ranged attacker",
+    "rarity": "rare",
+    "elixir": 3
+  },
+  {
+    "id": "hog-rider",
+    "name": "Hog Rider",
+    "imageUrl": "/images/hog-rider.png",
+    "description": "Building-targeting melee fighter",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "valkyrie",
+    "name": "Valkyrie",
+    "imageUrl": "/images/valkyrie.png",
+    "description": "Area damage melee fighter",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "musketeer",
+    "name": "Musketeer",
+    "imageUrl": "/images/musketeer.png",
+    "description": "Ranged attacker",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "wizard",
+    "name": "Wizard",
+    "imageUrl": "/images/wizard.png",
+    "description": "Area damage ranged attacker",
+    "rarity": "rare",
+    "elixir": 5
+  },
+  {
+    "id": "giant",
+    "name": "Giant",
+    "imageUrl": "/images/giant.png",
+    "description": "Slow, tough building-targeting tank",
+    "rarity": "rare",
+    "elixir": 5
+  },
+  {
+    "id": "fireball",
+    "name": "Fireball",
+    "imageUrl": "/images/fireball.png",
+    "description": "Area damage spell",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "rocket",
+    "name": "Rocket",
+    "imageUrl": "/images/rocket.png",
+    "description": "High damage building-targeting spell",
+    "rarity": "rare",
+    "elixir": 6
+  },
+  {
+    "id": "baby-dragon",
+    "name": "Baby Dragon",
+    "imageUrl": "/images/baby-dragon.png",
+    "description": "Flying area damage attacker",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "prince",
+    "name": "Prince",
+    "imageUrl": "/images/prince.png",
+    "description": "Charging melee fighter",
+    "rarity": "rare",
+    "elixir": 5
+  },
+  {
+    "id": "dark-prince",
+    "name": "Dark Prince",
+    "imageUrl": "/images/dark-prince.png",
+    "description": "Charging area damage fighter",
+    "rarity": "rare",
+    "elixir": 4
+  },
+  {
+    "id": "witch",
+    "name": "Witch",
+    "imageUrl": "/images/witch.png",
+    "description": "Ranged attacker that spawns skeletons",
+    "rarity": "epic",
+    "elixir": 5
+  },
+  {
+    "id": "balloon",
+    "name": "Balloon",
+    "imageUrl": "/images/balloon.png",
+    "description": "Flying building-targeting attacker",
+    "rarity": "epic",
+    "elixir": 5
+  },
+  {
+    "id": "goblin-barrel",
+    "name": "Goblin Barrel",
+    "imageUrl": "/images/goblin-barrel.png",
+    "description": "Spell that spawns goblins",
+    "rarity": "epic",
+    "elixir": 3
+  },
+  {
+    "id": "freeze",
+    "name": "Freeze",
+    "imageUrl": "/images/freeze.png",
+    "description": "Spell that freezes enemies",
+    "rarity": "epic",
+    "elixir": 4
+  },
+  {
+    "id": "poison",
+    "name": "Poison",
+    "imageUrl": "/images/poison.png",
+    "description": "Area damage over time spell",
+    "rarity": "epic",
+    "elixir": 4
+  },
+  {
+    "id": "lightning",
+    "name": "Lightning",
+    "imageUrl": "/images/lightning.png",
+    "description": "High damage spell to three targets",
+    "rarity": "epic",
+    "elixir": 6
+  },
+  {
+    "id": "pekka",
+    "name": "P.E.K.K.A",
+    "imageUrl": "/images/pekka.png",
+    "description": "Slow, very tough melee fighter",
+    "rarity": "epic",
+    "elixir": 7
+  },
+  {
+    "id": "golem",
+    "name": "Golem",
+    "imageUrl": "/images/golem.png",
+    "description": "Slow, very tough building-targeting tank",
+    "rarity": "epic",
+    "elixir": 8
+  },
+  {
+    "id": "rage",
+    "name": "Rage",
+    "imageUrl": "/images/rage.png",
+    "description": "Spell that increases attack and movement speed",
+    "rarity": "epic",
+    "elixir": 2
+  },
+  {
+    "id": "mirror",
+    "name": "Mirror",
+    "imageUrl": "/images/mirror.png",
+    "description": "Spell that copies the last card played",
+    "rarity": "epic",
+    "elixir": 0
+  },
+  {
+    "id": "clone",
+    "name": "Clone",
+    "imageUrl": "/images/clone.png",
+    "description": "Spell that duplicates troops",
+    "rarity": "epic",
+    "elixir": 3
+  },
+  {
+    "id": "goblin-drill",
+    "name": "Goblin Drill",
+    "imageUrl": "/images/goblin-drill.png",
+    "description": "Building that spawns goblins underground",
+    "rarity": "epic",
+    "elixir": 4
+  },
+  {
+    "id": "goblin-giant",
+    "name": "Goblin Giant",
+    "imageUrl": "/images/goblin-giant.png",
+    "description": "Building-targeting tank that spawns spear goblins",
+    "rarity": "epic",
+    "elixir": 6
+  },
+  {
+    "id": "bowler",
+    "name": "Bowler",
+    "imageUrl": "/images/bowler.png",
+    "description": "Area damage ranged attacker",
+    "rarity": "epic",
+    "elixir": 5
+  },
+  {
+    "id": "executioner",
+    "name": "Executioner",
+    "imageUrl": "/images/executioner.png",
+    "description": "Area damage ranged attacker",
+    "rarity": "epic",
+    "elixir": 5
+  },
+  {
+    "id": "skeleton-barrel",
+    "name": "Skeleton Barrel",
+    "imageUrl": "/images/skeleton-barrel.png",
+    "description": "Spell that spawns skeletons",
+    "rarity": "epic",
+    "elixir": 3
+  },
+  {
+    "id": "tornado",
+    "name": "Tornado",
+    "imageUrl": "/images/tornado.png",
+    "description": "Spell that pulls enemies together",
+    "rarity": "epic",
+    "elixir": 3
+  },
+  {
+    "id": "three-musketeers",
+    "name": "Three Musketeers",
+    "imageUrl": "/images/three-musketeers.png",
+    "description": "Three ranged attackers",
+    "rarity": "epic",
+    "elixir": 9
+  },
+  {
+    "id": "minion-horde",
+    "name": "Minion Horde",
+    "imageUrl": "/images/minion-horde.png",
+    "description": "Six fast, flying melee fighters",
+    "rarity": "epic",
+    "elixir": 5
+  },
+  {
+    "id": "barbarian-barrel",
+    "name": "Barbarian Barrel",
+    "imageUrl": "/images/barbarian-barrel.png",
+    "description": "Spell that spawns a barbarian",
+    "rarity": "epic",
+    "elixir": 2
+  },
+  {
+    "id": "elite-barbarians",
+    "name": "Elite Barbarians",
+    "imageUrl": "/images/elite-barbarians.png",
+    "description": "Two fast, tough melee fighters",
+    "rarity": "epic",
+    "elixir": 6
+  },
+  {
+    "id": "the-log",
+    "name": "The Log",
+    "imageUrl": "/images/the-log.png",
+    "description": "Rolling spell that damages and pushes",
+    "rarity": "legendary",
+    "elixir": 2
+  },
+  {
+    "id": "miner",
+    "name": "Miner",
+    "imageUrl": "/images/miner.png",
+    "description": "Underground melee fighter",
+    "rarity": "legendary",
+    "elixir": 3
+  },
+  {
+    "id": "princess",
+    "name": "Princess",
+    "imageUrl": "/images/princess.png",
+    "description": "Long-range attacker",
+    "rarity": "legendary",
+    "elixir": 3
+  },
+  {
+    "id": "ice-wizard",
+    "name": "Ice Wizard",
+    "imageUrl": "/images/ice-wizard.png",
+    "description": "Ranged attacker that slows enemies",
+    "rarity": "legendary",
+    "elixir": 3
+  },
+  {
+    "id": "royal-ghost",
+    "name": "Royal Ghost",
+    "imageUrl": "/images/royal-ghost.png",
+    "description": "Invisible melee fighter",
+    "rarity": "legendary",
+    "elixir": 3
+  },
+  {
+    "id": "bandit",
+    "name": "Bandit",
+    "imageUrl": "/images/bandit.png",
+    "description": "Dashing melee fighter",
+    "rarity": "legendary",
+    "elixir": 3
+  },
+  {
+    "id": "lumberjack",
+    "name": "Lumberjack",
+    "imageUrl": "/images/lumberjack.png",
+    "description": "Fast melee fighter that drops rage",
+    "rarity": "legendary",
+    "elixir": 4
+  },
+  {
+    "id": "inferno-dragon",
+    "name": "Inferno Dragon",
+    "imageUrl": "/images/inferno-dragon.png",
+    "description": "Flying building-targeting attacker",
+    "rarity": "legendary",
+    "elixir": 4
+  },
+  {
+    "id": "electro-wizard",
+    "name": "Electro Wizard",
+    "imageUrl": "/images/electro-wizard.png",
+    "description": "Ranged attacker that stuns",
+    "rarity": "legendary",
+    "elixir": 4
+  },
+  {
+    "id": "magic-archer",
+    "name": "Magic Archer",
+    "imageUrl": "/images/magic-archer.png",
+    "description": "Piercing ranged attacker",
+    "rarity": "legendary",
+    "elixir": 4
+  },
+  {
+    "id": "night-witch",
+    "name": "Night Witch",
+    "imageUrl": "/images/night-witch.png",
+    "description": "Melee fighter that spawns bats",
+    "rarity": "legendary",
+    "elixir": 4
+  },
+  {
+    "id": "mother-witch",
+    "name": "Mother Witch",
+    "imageUrl": "/images/mother-witch.png",
+    "description": "Ranged attacker that curses enemies",
+    "rarity": "legendary",
+    "elixir": 4
+  },
+  {
+    "id": "ram-rider",
+    "name": "Ram Rider",
+    "imageUrl": "/images/ram-rider.png",
+    "description": "Building-targeting melee fighter",
+    "rarity": "legendary",
+    "elixir": 5
+  },
+  {
+    "id": "graveyard",
+    "name": "Graveyard",
+    "imageUrl": "/images/graveyard.png",
+    "description": "Spell that spawns skeletons",
+    "rarity": "legendary",
+    "elixir": 5
+  },
+  {
+    "id": "sparky",
+    "name": "Sparky",
+    "imageUrl": "/images/sparky.png",
+    "description": "Slow, high damage ranged attacker",
+    "rarity": "legendary",
+    "elixir": 6
+  },
+  {
+    "id": "lava-hound",
+    "name": "Lava Hound",
+    "imageUrl": "/images/lava-hound.png",
+    "description": "Flying building-targeting tank",
+    "rarity": "legendary",
+    "elixir": 7
+  },
+  {
+    "id": "mega-knight",
+    "name": "Mega Knight",
+    "imageUrl": "/images/mega-knight.png",
+    "description": "Area damage melee tank",
+    "rarity": "legendary",
+    "elixir": 7
+  },
+  {
+    "id": "little-prince",
+    "name": "Little Prince",
+    "imageUrl": "/images/little-prince.png",
+    "description": "Ranged attacker with ability",
+    "rarity": "champion",
+    "elixir": 3
+  },
+  {
+    "id": "golden-knight",
+    "name": "Golden Knight",
+    "imageUrl": "/images/golden-knight.png",
+    "description": "Melee fighter with dash ability",
+    "rarity": "champion",
+    "elixir": 4
+  },
+  {
+    "id": "skeleton-king",
+    "name": "Skeleton King",
+    "imageUrl": "/images/skeleton-king.png",
+    "description": "Melee fighter that spawns skeletons",
+    "rarity": "champion",
+    "elixir": 4
+  },
+  {
+    "id": "mighty-miner",
+    "name": "Mighty Miner",
+    "imageUrl": "/images/mighty-miner.png",
+    "description": "Underground melee fighter",
+    "rarity": "champion",
+    "elixir": 4
+  },
+  {
+    "id": "archer-queen",
+    "name": "Archer Queen",
+    "imageUrl": "/images/archer-queen.png",
+    "description": "Ranged attacker with invisibility",
+    "rarity": "champion",
+    "elixir": 5
+  },
+  {
+    "id": "monk",
+    "name": "Monk",
+    "imageUrl": "/images/monk.png",
+    "description": "Melee fighter with ability",
+    "rarity": "champion",
+    "elixir": 5
+  },
+  {
+    "id": "ken",
+    "name": "Ken",
+    "imageUrl": "/images/ken.jpeg",
+    "description": "Legendary Clash Royale content creator and strategist",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "xqc",
+    "name": "xQc",
+    "imageUrl": "/images/XQC.png",
+    "description": "Epic streamer and gaming sensation extraordinaire",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "juicyj",
+    "name": "JuicyJ",
+    "imageUrl": "/images/juicyj.png",
+    "description": "Master of the arena with unstoppable skills",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "mr-clashbroyale",
+    "name": "Mr. ClashBroyale",
+    "imageUrl": "/images/Mr-ClashBroyale.jpg",
+    "description": "The ultimate Clash Royale mastermind",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "thebigyazz",
+    "name": "TheBigYazz",
+    "imageUrl": "/images/thebigyazz.png",
+    "description": "Epic entertainer and community leader",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "bobby",
+    "name": "Bobby",
+    "imageUrl": "/images/bobby.png",
+    "description": "Mythical content creator with godlike abilities",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "oj",
+    "name": "OJ",
+    "imageUrl": "/images/OJ.png",
+    "description": "Supreme master of the Clash Royale universe",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "reckers",
+    "name": "Reckers",
+    "imageUrl": "/images/reckers.png",
+    "description": "The ultimate legend in content creation",
+    "rarity": "creator",
+    "elixir": 69
+  },
+  {
+    "id": "jynxzi",
+    "name": "Jynxzi",
+    "description": "Epic streamer who never fails to amaze",
+    "imageUrl": "/images/jynxzi.jpeg",
+    "rarity": "creator",
+    "elixir": 69
+  }
+]
