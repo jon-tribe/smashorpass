@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import characters from '../data/characters.json';
 
-function SmashOrPass() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+function SmashOrPass({ showAgeVerification = false }) {
   const [responses, setResponses] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [gameState, setGameState] = useState('age-verification'); // 'age-verification', 'landing', 'game', 'results'
-  const [animationState, setAnimationState] = useState('idle'); // 'idle', 'smashing', 'passing'
+  const [gameState, setGameState] = useState(showAgeVerification ? 'age-verification' : 'game'); // 'age-verification', 'landing', 'game', 'results'
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingResponse, setPendingResponse] = useState(null);
   const [selectedDeck, setSelectedDeck] = useState(null); // 'smash' or 'pass' or null
   const [deckCards, setDeckCards] = useState([]);
   const [shuffledCharacters, setShuffledCharacters] = useState([]);
+  
+  // Simple card stack state
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // Preload images for smooth transitions and start game
   useEffect(() => {
@@ -39,7 +40,7 @@ function SmashOrPass() {
     loadImages();
   }, []);
 
-  const handleResponse = (response) => {
+  const handleResponse = useCallback((response) => {
     // 5% chance to show confirmation dialog
     const shouldConfirm = Math.random() < 0.05;
     
@@ -49,15 +50,67 @@ function SmashOrPass() {
       return;
     }
     
-    executeResponse(response);
-  };
+    // Inline the executeResponse logic to avoid dependency issues
+    const gameCharacters = shuffledCharacters.length > 0 ? shuffledCharacters : characters;
+    const currentCharacter = gameCharacters[currentIndex];
+    
+    // Play sound effect
+    if (response === 'smash') {
+      const smashAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      smashAudio.volume = 0.3;
+      smashAudio.play().catch(() => {});
+    } else {
+      const passAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      passAudio.volume = 0.2;
+      passAudio.play().catch(() => {});
+    }
+    
+    setResponses(prev => ({
+      ...prev,
+      [currentCharacter.id]: response
+    }));
+
+    // Add a delay for animation
+    setTimeout(() => {
+      if (currentIndex < gameCharacters.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      } else {
+        setShowResults(true);
+        setGameState('results');
+      }
+    }, 300);
+  }, [shuffledCharacters, currentIndex]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (gameState === 'game' && shuffledCharacters.length > 0 && currentIndex < shuffledCharacters.length) {
+        switch (event.key) {
+          case 'ArrowLeft':
+            event.preventDefault();
+            handleResponse('pass');
+            break;
+          case 'ArrowRight':
+            event.preventDefault();
+            handleResponse('smash');
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [gameState, shuffledCharacters, currentIndex, handleResponse]);
+
+
 
   const executeResponse = (response) => {
     const gameCharacters = shuffledCharacters.length > 0 ? shuffledCharacters : characters;
     const currentCharacter = gameCharacters[currentIndex];
     
-    // Set animation state
-    setAnimationState(response === 'smash' ? 'smashing' : 'passing');
+
     
     // Play sound effect
     if (response === 'smash') {
@@ -77,16 +130,15 @@ function SmashOrPass() {
       [currentCharacter.id]: response
     }));
 
-    // Add a longer delay for animation
+    // Add a delay for animation
     setTimeout(() => {
-      setAnimationState('idle');
       if (currentIndex < gameCharacters.length - 1) {
         setCurrentIndex(prev => prev + 1);
       } else {
         setShowResults(true);
         setGameState('results');
       }
-    }, 800);
+    }, 300);
   };
 
   const confirmResponse = () => {
@@ -172,6 +224,8 @@ function SmashOrPass() {
     return 'bg-red-500';
   };
 
+
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600">
@@ -190,19 +244,21 @@ function SmashOrPass() {
     const currentCharacter = gameCharacters[currentIndex];
     const progress = ((currentIndex + 1) / gameCharacters.length) * 100;
     
+    // Get swiped cards for visual history
+    const swipedCards = Object.entries(responses).map(([id, response]) => {
+      const character = characters.find(c => c.id === id);
+      return { character, response };
+    });
+    
+    const smashedCards = swipedCards.filter(card => card.response === 'smash');
+    const passedCards = swipedCards.filter(card => card.response === 'pass');
+    
     mainGameView = (
       <div className="h-screen w-screen bg-black relative overflow-hidden">
         {/* Pornhub-style header */}
         <div className="bg-black border-b border-gray-800 px-4 py-3">
           <div className="flex justify-between items-center max-w-6xl mx-auto">
             <div className="flex items-center space-x-6">
-              <button
-                onClick={() => setGameState('landing')}
-                className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2"
-              >
-                <span>←</span>
-                <span>Home</span>
-              </button>
               <h1 className="text-2xl font-bold text-white">
                 <span className="text-white">Smash</span>
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-lg ml-2 font-bold">Pass</span>
@@ -222,8 +278,38 @@ function SmashOrPass() {
           </div>
         </div>
         
-        <div className="relative z-10 h-full w-full p-4 flex flex-col">
-          <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+        <div className="relative z-10 h-full w-full p-4 flex">
+          {/* Left Side - Passed Cards */}
+          <div className="w-48 flex flex-col items-center justify-center">
+            <div className="text-red-500 text-sm font-bold mb-2">PASSED ({passedCards.length})</div>
+            <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
+              {Array.from({ length: 20 }, (_, index) => {
+                const card = passedCards.slice(-20).reverse()[index];
+                return (
+                  <div 
+                    key={index}
+                    className="w-16 h-16 rounded-lg overflow-hidden border-2 border-red-500 bg-gray-800 transition-transform duration-200"
+                    style={{ zIndex: 100 - index }}
+                  >
+                    {card ? (
+                      <img
+                        src={card.character.imageUrl}
+                        alt={card.character.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gray-600 rounded-full opacity-50"></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Center - Main Game Area */}
+          <div className="flex-1 flex flex-col max-w-4xl mx-auto">
             {/* Progress Bar */}
             <div className="text-center mb-6">
               <div className="bg-gray-800 rounded-full h-3 mb-2 overflow-hidden">
@@ -234,15 +320,9 @@ function SmashOrPass() {
               </div>
             </div>
 
-            {/* Character Card */}
-            <div className={`group relative flex-1 flex items-center justify-center min-h-0 ${animationState === 'smashing' ? 'smash-animation' : animationState === 'passing' ? 'pass-animation' : ''}`}>
-              <div className={`relative bg-gray-900 rounded-lg p-6 border border-gray-700 shadow-lg transition-all duration-300 max-w-2xl w-full ${
-                animationState === 'smashing' 
-                  ? 'border-orange-400 shadow-orange-500/25' 
-                  : animationState === 'passing' 
-                  ? 'border-gray-500 shadow-gray-500/25' 
-                  : ''
-              }`}>
+            {/* Simple Card Display */}
+            <div className="flex-1 flex items-center justify-center min-h-0">
+              <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 shadow-2xl max-w-2xl w-full">
                 <div className="text-center">
                   {/* Character Image */}
                   <div className="relative mb-6">
@@ -253,27 +333,6 @@ function SmashOrPass() {
                         className="w-full h-full object-contain p-2"
                       />
                     </div>
-                    
-                    {/* Particle Effects */}
-                    {animationState === 'smashing' && (
-                      <>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-green-400 rounded-full particle" style={{ left: '45%', top: '40%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-green-400 rounded-full particle" style={{ left: '55%', top: '45%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-green-400 rounded-full particle" style={{ left: '50%', top: '50%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-green-400 rounded-full particle" style={{ left: '40%', top: '55%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-green-400 rounded-full particle" style={{ left: '60%', top: '60%' }}></div>
-                      </>
-                    )}
-                    
-                    {animationState === 'passing' && (
-                      <>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-red-400 rounded-full particle" style={{ left: '45%', top: '40%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-red-400 rounded-full particle" style={{ left: '55%', top: '45%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-red-400 rounded-full particle" style={{ left: '50%', top: '50%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-red-400 rounded-full particle" style={{ left: '40%', top: '55%' }}></div>
-                        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-red-400 rounded-full particle" style={{ left: '60%', top: '60%' }}></div>
-                      </>
-                    )}
                   </div>
 
                   {/* Character Info */}
@@ -294,7 +353,7 @@ function SmashOrPass() {
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
                       }}
                     >
-                      💔 PASS
+                      🤮 PASS
                     </button>
                     <button
                       onClick={() => handleResponse('smash')}
@@ -314,8 +373,38 @@ function SmashOrPass() {
             {/* Instructions */}
             <div className="text-center mt-4 mb-2 flex-shrink-0">
               <p className="text-white text-sm opacity-80 font-medium">
-                Tap <span className="text-green-400 font-bold">SMASH</span> if you like this character, <span className="text-red-400 font-bold">PASS</span> if you don't!
+                Click <span className="text-red-400 font-bold">PASS</span> or <span className="text-green-400 font-bold">SMASH</span> to make your choice!<br />
+                <span className="text-gray-300 text-sm">Or use ← (left arrow) for PASS and → (right arrow) for SMASH</span>
               </p>
+            </div>
+          </div>
+
+          {/* Right Side - Smashed Cards */}
+          <div className="w-48 flex flex-col items-center justify-center">
+            <div className="text-green-500 text-sm font-bold mb-2">SMASHED ({smashedCards.length})</div>
+            <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
+              {Array.from({ length: 20 }, (_, index) => {
+                const card = smashedCards[smashedCards.length - 1 - index];
+                return (
+                  <div 
+                    key={index}
+                    className="w-16 h-16 rounded-lg overflow-hidden border-2 border-green-500 bg-gray-800 transition-transform duration-200"
+                    style={{ zIndex: 100 - index }}
+                  >
+                    {card ? (
+                      <img
+                        src={card.character.imageUrl}
+                        alt={card.character.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gray-600 rounded-full opacity-50"></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -381,8 +470,8 @@ function SmashOrPass() {
                   Age Verification
                 </h2>
                 <div className="text-white text-base mb-8 space-y-2">
-                  <p>Smash or Pass is an adult community that contains age-restricted content.</p>
-                  <p>You must be 18 years old or over to enter.</p>
+                  <p>Smash or Pass does actually not contain any adult content, this is just a joke.</p>
+                  <p>And you don't have to be above 18 to play it.</p>
                 </div>
               </div>
               
@@ -473,7 +562,67 @@ function SmashOrPass() {
           const smashPercentage = totalRated > 0 ? Math.round((smashList.length / totalRated) * 100) : 0;
 
           return (
-            <div className="h-screen w-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4 flex items-center justify-center">
+            <div className="h-screen w-screen bg-black p-4 flex items-center justify-center relative overflow-hidden">
+              {/* Blurred Video Player Background */}
+              <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 opacity-40">
+                {characters.slice(0, 48).map((character, index) => {
+                  const explicitTitles = [
+                    "Hot MILF Gets Wild",
+                    "Amateur Teen Fucked",
+                    "Busty Babe Takes It All",
+                    "Hardcore Anal Action",
+                    "Threesome Gone Wild",
+                    "Step Sister Surprise",
+                    "Big Tits Big Fun",
+                    "Creampie Compilation",
+                    "Gangbang Orgy",
+                    "Lesbian Lovers",
+                    "Blonde Bombshell",
+                    "Dirty Talk Delight",
+                    "Rough Sex Session",
+                    "Cumshot Collection",
+                    "POV Fucking",
+                    "BDSM Playtime",
+                    "Swinger Party",
+                    "Nude Beach Fun",
+                    "Office Romance",
+                    "Teacher Student",
+                    "Nurse Exam",
+                    "Massage Parlor",
+                    "Strip Club",
+                    "Hotel Hookup"
+                  ];
+                  const viewCounts = ["2.1M", "1.8M", "3.2M", "956K", "1.5M", "2.7M", "1.3M", "4.1M", "789K", "2.9M", "1.7M", "3.5M", "2.3M", "1.9M", "3.8M", "1.4M", "2.6M", "1.1M", "3.9M", "2.4M", "1.6M", "3.1M", "2.8M", "1.2M"];
+                  const likePercentages = ["94%", "87%", "91%", "96%", "89%", "93%", "85%", "98%", "82%", "95%", "88%", "92%", "90%", "86%", "97%", "84%", "94%", "81%", "99%", "91%", "87%", "93%", "89%", "83%"];
+                  
+                  const title = explicitTitles[index % explicitTitles.length];
+                  const views = viewCounts[index % viewCounts.length];
+                  const likes = likePercentages[index % likePercentages.length];
+                  
+                  return (
+                    <div key={`bg-${character.id}`} className="relative group">
+                      <div className="w-full aspect-video bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                        <img
+                          src={character.imageUrl}
+                          alt={character.name}
+                          className="w-full h-full object-cover filter blur-md"
+                        />
+                        {/* Video Player Overlay */}
+                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                          <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <div className="w-0 h-0 border-l-4 border-l-white border-t-2 border-t-transparent border-b-2 border-b-transparent ml-1"></div>
+                          </div>
+                        </div>
+                        {/* Video Metadata */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-80 p-2">
+                          <div className="text-white text-xs font-semibold truncate">{title}</div>
+                          <div className="text-gray-300 text-xs">{views} views • {likes}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
               <div className="max-w-4xl mx-auto w-full">
                 <div className="text-center mb-8 animate-fade-in">
                   <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -482,50 +631,44 @@ function SmashOrPass() {
                   
                   {/* Stats Section */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl p-4 border border-white border-opacity-20">
+                    <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-4">
                       <div className="text-3xl font-black text-white">{totalRated}</div>
-                      <div className="text-sm text-gray-200">Total Rated</div>
+                      <div className="text-sm text-gray-300">Total Rated</div>
                     </div>
-                    <div className="bg-green-500 bg-opacity-20 backdrop-blur-sm rounded-2xl p-4 border border-green-400 border-opacity-20">
+                    <div className="bg-gray-900 border-2 border-green-500 rounded-2xl p-4">
                       <div className="text-3xl font-black text-green-400">{smashList.length}</div>
-                      <div className="text-sm text-green-200">Smash</div>
+                      <div className="text-sm text-green-300">Smash</div>
                     </div>
-                    <div className="bg-red-500 bg-opacity-20 backdrop-blur-sm rounded-2xl p-4 border border-red-400 border-opacity-20">
+                    <div className="bg-gray-900 border-2 border-red-500 rounded-2xl p-4">
                       <div className="text-3xl font-black text-red-400">{passList.length}</div>
-                      <div className="text-sm text-red-200">Pass</div>
+                      <div className="text-sm text-red-300">Pass</div>
                     </div>
-                    <div className="bg-purple-500 bg-opacity-20 backdrop-blur-sm rounded-2xl p-4 border border-purple-400 border-opacity-20">
-                      <div className="text-3xl font-black text-purple-400">{smashPercentage}%</div>
-                      <div className="text-sm text-purple-200">Smash Rate</div>
+                    <div className="bg-gray-900 border-2 border-orange-500 rounded-2xl p-4">
+                      <div className="text-3xl font-black text-orange-400">{smashPercentage}%</div>
+                      <div className="text-sm text-orange-300">Smash Rate</div>
                     </div>
                   </div>
                 
                   <div className="space-x-4">
                     <button
                       onClick={resetGame}
-                      className="bg-white text-purple-600 px-6 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors duration-200"
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
                     >
                       Play Again
-                    </button>
-                    <button
-                      onClick={() => setGameState('landing')}
-                      className="bg-gray-500 text-white px-6 py-3 rounded-full font-bold text-lg hover:bg-gray-600 transition-colors duration-200"
-                    >
-                      Back to Menu
                     </button>
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Smash List */}
-                  <div className="bg-white rounded-2xl p-6 shadow-2xl animate-slide-in">
-                    <h2 className="text-2xl font-bold text-green-600 mb-4 flex items-center">
-                      <span className="text-3xl mr-2">💚</span>
+                  <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-6 shadow-2xl animate-slide-in">
+                    <h2 className="text-2xl font-bold text-green-400 mb-4 flex items-center">
+                      <span className="text-3xl mr-2">🍆</span>
                       Smash ({smashList.length})
                     </h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
                       {smashList.map(character => (
-                        <div key={character.id} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                        <div key={character.id} className="flex items-center space-x-3 p-3 bg-gray-800 border border-gray-600 rounded-lg">
                           <img
                             src={character.imageUrl}
                             alt={character.name}
@@ -535,8 +678,8 @@ function SmashOrPass() {
                             }}
                           />
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800">{character.name}</h3>
-                            <p className="text-sm text-gray-600">{character.description}</p>
+                            <h3 className="font-semibold text-white">{character.name}</h3>
+                            <p className="text-sm text-gray-300">{character.description}</p>
                           </div>
                           <div className={`px-2 py-1 rounded text-xs font-bold text-white ${getElixirColor(character.elixir)}`}>
                             {character.elixir}
@@ -544,13 +687,13 @@ function SmashOrPass() {
                         </div>
                       ))}
                       {smashList.length === 0 && (
-                        <p className="text-gray-500 text-center py-8">No characters smashed 😢</p>
+                        <p className="text-gray-400 text-center py-8">No characters smashed 😢</p>
                       )}
                     </div>
                     {smashList.length > 0 && (
                       <button
                         onClick={() => createDeck('smash')}
-                        className="w-full mt-4 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                        className="w-full mt-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
                       >
                         🃏 Create Smash Deck
                       </button>
@@ -558,14 +701,14 @@ function SmashOrPass() {
                   </div>
 
                   {/* Pass List */}
-                  <div className="bg-white rounded-2xl p-6 shadow-2xl animate-slide-in">
-                    <h2 className="text-2xl font-bold text-red-600 mb-4 flex items-center">
+                  <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-6 shadow-2xl animate-slide-in">
+                    <h2 className="text-2xl font-bold text-red-400 mb-4 flex items-center">
                       <span className="text-3xl mr-2">💔</span>
                       Pass ({passList.length})
                     </h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
                       {passList.map(character => (
-                        <div key={character.id} className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+                        <div key={character.id} className="flex items-center space-x-3 p-3 bg-gray-800 border border-gray-600 rounded-lg">
                           <img
                             src={character.imageUrl}
                             alt={character.name}
@@ -575,8 +718,8 @@ function SmashOrPass() {
                             }}
                           />
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800">{character.name}</h3>
-                            <p className="text-sm text-gray-600">{character.description}</p>
+                            <h3 className="font-semibold text-white">{character.name}</h3>
+                            <p className="text-sm text-gray-300">{character.description}</p>
                           </div>
                           <div className={`px-2 py-1 rounded text-xs font-bold text-white ${getElixirColor(character.elixir)}`}>
                             {character.elixir}
@@ -584,13 +727,13 @@ function SmashOrPass() {
                         </div>
                       ))}
                       {passList.length === 0 && (
-                        <p className="text-gray-500 text-center py-8">No characters passed 😍</p>
+                        <p className="text-gray-400 text-center py-8">No characters passed 😍</p>
                       )}
                     </div>
                     {passList.length > 0 && (
                       <button
                         onClick={() => createDeck('pass')}
-                        className="w-full mt-4 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                        className="w-full mt-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
                       >
                         🃏 Create Pass Deck
                       </button>

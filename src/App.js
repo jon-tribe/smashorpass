@@ -1,82 +1,103 @@
 import React, { useState } from 'react';
 import './App.css';
+import characters from './data/characters.json';
 
 // Import the existing SmashOrPass component
 import SmashOrPass from './components/SmashOrPass';
-import GuessTheCard from './components/GuessTheCard';
 
 function App() {
-  const [currentGame, setCurrentGame] = useState('home'); // 'home', 'smash-or-pass', 'guess-the-card'
+  const [currentGame, setCurrentGame] = useState('home'); // 'home', 'smash-or-pass'
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   const renderHomePage = () => (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-white mb-8 drop-shadow-lg">
-          Clash Royale Games
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Blurred Video Player Background */}
+      <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 opacity-20">
+        {characters.slice(0, 48).map((character, index) => {
+          const familyFriendlyTitles = [
+            "Cute Cat Videos",
+            "Funny Dog Moments",
+            "Amazing Magic Tricks",
+            "Cool Science Experiments",
+            "Awesome Dance Moves",
+            "Epic Gaming Highlights",
+            "Delicious Cooking Recipes",
+            "Amazing Nature Scenes",
+            "Fun Family Activities",
+            "Exciting Sports Plays",
+            "Beautiful Art Creations",
+            "Interesting History Facts",
+            "Amazing Space Discoveries",
+            "Funny Baby Laughs",
+            "Cool Car Reviews",
+            "Awesome Music Covers",
+            "Fun Travel Adventures",
+            "Amazing Animal Friends",
+            "Cool Tech Reviews",
+            "Funny School Moments",
+            "Awesome Parkour Moves",
+            "Beautiful Sunset Views",
+            "Fun Party Games",
+            "Amazing Talent Shows"
+          ];
+          const viewCounts = ["2.1M", "1.8M", "3.2M", "956K", "1.5M", "2.7M", "1.3M", "4.1M", "789K", "2.9M", "1.7M", "3.5M", "2.3M", "1.9M", "3.8M", "1.4M", "2.6M", "1.1M", "3.9M", "2.4M", "1.6M", "3.1M", "2.8M", "1.2M"];
+          const likePercentages = ["94%", "87%", "91%", "96%", "89%", "93%", "85%", "98%", "82%", "95%", "88%", "92%", "90%", "86%", "97%", "84%", "94%", "81%", "99%", "91%", "87%", "93%", "89%", "83%"];
+          
+          const title = familyFriendlyTitles[index % familyFriendlyTitles.length];
+          const views = viewCounts[index % viewCounts.length];
+          const likes = likePercentages[index % likePercentages.length];
+          
+          return (
+            <div key={`bg-${character.id}`} className="relative group">
+              <div className="w-full aspect-video bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                <img
+                  src={character.imageUrl}
+                  alt={character.name}
+                  className="w-full h-full object-cover filter blur-md"
+                />
+                {/* Video Player Overlay */}
+                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
+                    <div className="w-0 h-0 border-l-3 border-l-white border-t-1.5 border-t-transparent border-b-1.5 border-b-transparent ml-0.5"></div>
+                  </div>
+                </div>
+                {/* Video Metadata */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-1">
+                  <div className="text-white text-xs truncate">{title}</div>
+                  <div className="text-gray-300 text-xs">{views} views • {likes}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-center max-w-2xl relative z-10">
+        <h1 className="text-5xl md:text-6xl font-black text-white mb-6">
+          <span className="text-white">Smash</span>
+          <span className="bg-orange-500 text-white px-4 py-2 rounded-lg ml-3 font-bold">Pass</span>
         </h1>
-        <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-          Choose your game mode and have fun with your favorite Clash Royale characters!
+        <p className="text-xl text-gray-300 mb-8">
+          Rate your favorite Clash Royale characters! Swipe right for smash, left for pass.
         </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Smash or Pass Game */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer"
-               onClick={() => setCurrentGame('smash-or-pass')}>
-            <div className="text-6xl mb-4">💕</div>
-            <h2 className="text-3xl font-bold text-white mb-4">Smash or Pass</h2>
-            <p className="text-gray-300 mb-6">
-              Rate your favorite Clash Royale characters! Swipe right for smash, left for pass.
-            </p>
-            <div className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-6 py-3 rounded-full font-semibold">
-              Start Playing
-            </div>
-          </div>
-
-          {/* Guess the Card Game */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer"
-               onClick={() => setCurrentGame('guess-the-card')}>
-            <div className="text-6xl mb-4">🎯</div>
-            <h2 className="text-3xl font-bold text-white mb-4">Guess the Card</h2>
-            <p className="text-gray-300 mb-6">
-              Test your knowledge! Cards are revealed piece by piece - can you guess them?
-            </p>
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-full font-semibold">
-              Start Playing
-            </div>
-          </div>
-        </div>
-
-
+        <button
+          onClick={() => {
+            setShowAgeVerification(true);
+            setCurrentGame('smash-or-pass');
+          }}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+        >
+          Start Playing
+        </button>
       </div>
     </div>
   );
 
-  const renderBackButton = () => (
-    <button 
-      onClick={() => setCurrentGame('home')}
-      className="fixed top-6 left-6 z-50 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-200 flex items-center gap-2"
-    >
-      <span>←</span>
-      <span>Home</span>
-    </button>
-  );
+
 
   // Render the appropriate component based on current game
   switch (currentGame) {
     case 'smash-or-pass':
-      return (
-        <div>
-          {renderBackButton()}
-          <SmashOrPass />
-        </div>
-      );
-    case 'guess-the-card':
-      return (
-        <div>
-          {renderBackButton()}
-          <GuessTheCard />
-        </div>
-      );
+      return <SmashOrPass showAgeVerification={showAgeVerification} />;
     default:
       return renderHomePage();
   }
