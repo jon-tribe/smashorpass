@@ -99,6 +99,55 @@
   .animate-fade-in {
     animation-duration: 0.3s;
   }
+  
+  /* Mobile-specific touch interactions */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Mobile button styling */
+  button {
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Card hover effects for mobile (disable hover, enable active) */
+  .card-hover:hover {
+    transform: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+  
+  .card-hover:active {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Reduce card slide animation distance for mobile */
+  @keyframes cardSlideLeft {
+    0% {
+      transform: translateX(0) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-300px) rotate(-15deg) scale(0.8);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes cardSlideRight {
+    0% {
+      transform: translateX(0) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(300px) rotate(15deg) scale(0.8);
+      opacity: 0;
+    }
+  }
 }
 
 /* Smash and Pass Animations */

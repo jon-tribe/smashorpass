@@ -89,9 +89,10 @@ function SmashOrPass({ showAgeVerification = false }) {
       if (jynxziButtonClicks === 0) {
         const requiredClicks = Math.floor(Math.random() * 11) + 5; // Random between 5-15
         setJynxziRequiredClicks(requiredClicks);
-        // Move button on first click and return
-        const buttonWidth = 200;
-        const buttonHeight = 60;
+        // Move button on first click and return - Mobile responsive sizing
+        const isMobile = window.innerWidth < 640;
+        const buttonWidth = isMobile ? 160 : 200;
+        const buttonHeight = isMobile ? 48 : 60;
         
         // Get viewport dimensions
         const viewportWidth = window.innerWidth;
@@ -142,9 +143,10 @@ function SmashOrPass({ showAgeVerification = false }) {
       setJynxziButtonClicks(newClickCount);
       
       if (newClickCount < jynxziRequiredClicks) {
-        // Move button to random position within viewport bounds
-        const buttonWidth = 200;
-        const buttonHeight = 60;
+        // Move button to random position within viewport bounds - Mobile responsive sizing
+        const isMobile = window.innerWidth < 640;
+        const buttonWidth = isMobile ? 160 : 200;
+        const buttonHeight = isMobile ? 48 : 60;
         
         // Get viewport dimensions
         const viewportWidth = window.innerWidth;
@@ -567,32 +569,87 @@ function SmashOrPass({ showAgeVerification = false }) {
     
     mainGameView = (
       <div className="h-screen w-screen bg-black relative overflow-hidden">
-        {/* Pornhub-style header */}
+        {/* Header - Mobile Responsive */}
         <div className="bg-black border-b border-gray-800 px-4 py-3">
           <div className="flex justify-between items-center max-w-6xl mx-auto">
-            <div className="flex items-center space-x-6">
-              <h1 className="text-2xl font-bold text-white">
+            <div className="flex items-center space-x-2 sm:space-x-6">
+              <h1 className="text-lg sm:text-2xl font-bold text-white">
                 <span className="text-white">Smash</span>
-                <span className="bg-orange-500 text-white px-3 py-1 rounded-lg ml-2 font-bold">Pass</span>
+                <span className="bg-orange-500 text-white px-2 sm:px-3 py-1 rounded-lg ml-1 sm:ml-2 font-bold text-sm sm:text-base">Pass</span>
               </h1>
-              <div className="text-gray-300 text-sm font-medium">
+              <div className="text-gray-300 text-xs sm:text-sm font-medium">
                 {currentIndex + 1} of {gameCharacters.length}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={exitToResults}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors duration-200"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors duration-200"
               >
-                View Results
+                Results
               </button>
             </div>
           </div>
         </div>
         
-        <div className="relative z-10 h-full w-full p-4 flex">
-          {/* Left Side - Passed Cards */}
-          <div className="w-48 flex flex-col items-center justify-center">
+        <div className="relative z-10 h-full w-full p-2 sm:p-4 flex flex-col lg:flex-row">
+          {/* Mobile: Horizontal layout for passed/smashed cards */}
+          <div className="lg:hidden flex justify-between mb-4 px-2">
+            {/* Left Side - Passed Cards (Mobile) */}
+            <div className="flex flex-col items-center">
+              <div className="text-red-500 text-xs font-bold mb-1">PASSED ({passedCards.length})</div>
+              <div className="grid grid-cols-4 gap-1 max-w-20 border border-gray-700 rounded-lg p-1 bg-gray-900">
+              {Array.from({ length: 8 }, (_, index) => {
+                const card = passedCards.slice(-8).reverse()[index];
+                return (
+                  <div 
+                    key={index}
+                    className="w-4 h-4 rounded overflow-hidden border border-red-400 bg-gray-800"
+                  >
+                    {card ? (
+                      <img
+                        src={card.character.imageUrl}
+                        alt={card.character.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-700"></div>
+                    )}
+                  </div>
+                );
+              })}
+              </div>
+            </div>
+            
+            {/* Right Side - Smashed Cards (Mobile) */}
+            <div className="flex flex-col items-center">
+              <div className="text-orange-500 text-xs font-bold mb-1">SMASHED ({smashedCards.length})</div>
+              <div className="grid grid-cols-4 gap-1 max-w-20 border border-gray-700 rounded-lg p-1 bg-gray-900">
+              {Array.from({ length: 8 }, (_, index) => {
+                const card = smashedCards.slice(-8).reverse()[index];
+                return (
+                  <div 
+                    key={index}
+                    className="w-4 h-4 rounded overflow-hidden border border-orange-400 bg-gray-800"
+                  >
+                    {card ? (
+                      <img
+                        src={card.character.imageUrl}
+                        alt={card.character.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-700"></div>
+                    )}
+                  </div>
+                );
+              })}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Left Side - Passed Cards */}
+          <div className="hidden lg:flex w-48 flex-col items-center justify-center">
             <div className="text-red-500 text-sm font-bold mb-2">PASSED ({passedCards.length})</div>
             <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
               {Array.from({ length: 20 }, (_, index) => {
@@ -621,12 +678,12 @@ function SmashOrPass({ showAgeVerification = false }) {
           </div>
 
           {/* Center - Main Game Area */}
-          <div className="flex-1 flex flex-col max-w-4xl mx-auto">
+          <div className="flex-1 flex flex-col max-w-4xl mx-auto px-2 lg:px-4">
             {/* Progress Bar */}
-            <div className="text-center mb-6">
-              <div className="bg-gray-800 rounded-full h-3 mb-2 overflow-hidden">
+            <div className="text-center mb-4 lg:mb-6">
+              <div className="bg-gray-800 rounded-full h-2 lg:h-3 mb-2 overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 lg:h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -634,17 +691,18 @@ function SmashOrPass({ showAgeVerification = false }) {
 
             {/* Animated Card Stack Display */}
             <div className="flex-1 flex items-center justify-center min-h-0 relative">
-              {/* Card Stack Container */}
-              <div className="relative w-80 h-96">
-                {/* Action Buttons */}
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-4 w-80 z-50" style={{ bottom: '-80px' }}>
+              {/* Card Stack Container - Mobile Responsive */}
+              <div className="relative w-72 h-80 sm:w-80 sm:h-96">
+                {/* Action Buttons - Mobile Responsive */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-2 sm:gap-4 w-72 sm:w-80 z-50" style={{ bottom: '-70px' }}>
                   <button
                     onClick={() => handleResponse('pass')}
                     disabled={cardAnimationState !== 'idle'}
-                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap"
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-base sm:text-lg transition-all duration-200 transform active:scale-95 hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap touch-manipulation"
                     style={{
                       boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
-                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                      minHeight: '48px' // Ensures touch-friendly size
                     }}
                   >
                     🤮 PASS
@@ -655,10 +713,11 @@ function SmashOrPass({ showAgeVerification = false }) {
                     <button
                       onClick={() => handleResponse('smash')}
                       disabled={cardAnimationState !== 'idle'}
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-base sm:text-lg transition-all duration-200 transform active:scale-95 hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap touch-manipulation"
                       style={{
                         boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
-                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        minHeight: '48px' // Ensures touch-friendly size
                       }}
                     >
                       🍆 SMASH
@@ -673,25 +732,31 @@ function SmashOrPass({ showAgeVerification = false }) {
                 
                 {/* Moving Jynxzi Smash Button - rendered separately outside flex container */}
                 {cardStack.length > 0 && cardStack[0].character.id === 'jynxzi' && jynxziButtonClicks > 0 && jynxziButtonClicks < jynxziRequiredClicks && (() => {
-                  const buttonX = Math.max(0, Math.min(window.innerWidth - 200, jynxziButtonPosition.x || 100));
-                  const buttonY = Math.max(0, Math.min(window.innerHeight - 60, jynxziButtonPosition.y || 100));
+                  // Mobile-responsive button sizing
+                  const isMobile = window.innerWidth < 640;
+                  const buttonWidth = isMobile ? 160 : 200;
+                  const buttonHeight = isMobile ? 48 : 60;
+                  
+                  const buttonX = Math.max(0, Math.min(window.innerWidth - buttonWidth, jynxziButtonPosition.x || 100));
+                  const buttonY = Math.max(0, Math.min(window.innerHeight - buttonHeight, jynxziButtonPosition.y || 100));
                   
                   return (
                     <button
                       onClick={() => handleResponse('smash')}
                       disabled={cardAnimationState !== 'idle'}
-                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap"
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-base sm:text-lg transition-all duration-200 transform active:scale-95 hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap touch-manipulation"
                       style={{
                         position: 'fixed',
                         left: `${buttonX}px`,
                         top: `${buttonY}px`,
                         zIndex: 9999,
-                        width: '200px',
-                        height: '60px',
+                        width: `${buttonWidth}px`,
+                        height: `${buttonHeight}px`,
                         boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                         backgroundColor: '#f97316', // Fallback color
-                        display: 'block' // Ensure it's displayed
+                        display: 'block', // Ensure it's displayed
+                        minHeight: '48px' // Ensures touch-friendly size
                       }}
                     >
                       🍆 SMASH
@@ -812,15 +877,15 @@ function SmashOrPass({ showAgeVerification = false }) {
 
             {/* Instructions */}
             <div className="text-center mt-4 mb-2 flex-shrink-0">
-              <p className="text-white text-sm opacity-80 font-medium">
-                Click <span className="text-red-400 font-bold">PASS</span> or <span className="text-orange-400 font-bold">SMASH</span> to make your choice!<br />
-                <span className="text-gray-300 text-sm">Or use ← (left arrow) for PASS and → (right arrow) for SMASH</span>
+              <p className="text-white text-xs sm:text-sm opacity-80 font-medium px-4">
+                <span className="block sm:inline">Tap <span className="text-red-400 font-bold">PASS</span> or <span className="text-orange-400 font-bold">SMASH</span> to make your choice!</span>
+                <span className="hidden sm:inline text-gray-300 text-sm"><br />Or use ← (left arrow) for PASS and → (right arrow) for SMASH</span>
               </p>
             </div>
           </div>
 
-          {/* Right Side - Smashed Cards */}
-          <div className="w-48 flex flex-col items-center justify-center">
+          {/* Desktop: Right Side - Smashed Cards */}
+          <div className="hidden lg:flex w-48 flex-col items-center justify-center">
             <div className="text-orange-500 text-sm font-bold mb-2">SMASHED ({smashedCards.length})</div>
             <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
               {Array.from({ length: 20 }, (_, index) => {
