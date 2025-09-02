@@ -14,7 +14,28 @@ function SmashOrPass({ showAgeVerification = false }) {
   
   // Simple card stack state
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [jynxziButtonPosition, setJynxziButtonPosition] = useState({ x: 0, y: 0 });
+  const [jynxziButtonClicks, setJynxziButtonClicks] = useState(0);
+  const [jynxziRequiredClicks, setJynxziRequiredClicks] = useState(0);
+  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    type: "suggestion",
+    message: ""
+  });
+  
+  // Card animation states
+  const [cardAnimationState, setCardAnimationState] = useState('idle'); // 'idle', 'sliding-left', 'sliding-right', 'revealing'
+  const [cardStack, setCardStack] = useState([]);
+  
 
+  const [slideDirection, setSlideDirection] = useState(null);
+  const [slideProgress, setSlideProgress] = useState(0);
+  const [cardRotation, setCardRotation] = useState(0);
+  const [cardScale, setCardScale] = useState(1);
+
+  const [particles, setParticles] = useState([]);
   // Preload images for smooth transitions and start game
   useEffect(() => {
     const loadImages = async () => {
@@ -40,19 +61,202 @@ function SmashOrPass({ showAgeVerification = false }) {
     loadImages();
   }, []);
 
+  // Animate particles
+  useEffect(() => {
+    if (particles.length === 0) return;
+
+    const animateParticles = () => {
+      setParticles(prev => prev.map(particle => ({
+        ...particle,
+        x: particle.x + particle.vx * 0.016, // 60fps animation
+        y: particle.y + particle.vy * 0.016,
+        life: particle.life - 0.016,
+        vy: particle.vy + 50 * 0.016, // Gravity effect
+      })).filter(particle => particle.life > 0));
+    };
+
+    const interval = setInterval(animateParticles, 16); // ~60fps
+    return () => clearInterval(interval);
+  }, [particles]);
+
   const handleResponse = useCallback((response) => {
-    // 5% chance to show confirmation dialog
-    const shouldConfirm = Math.random() < 0.05;
+    // Get current character info from card stack
+    const currentCharacter = cardStack.length > 0 ? cardStack[0].character : null;
     
-    if (shouldConfirm) {
-      setPendingResponse(response);
-      setShowConfirmation(true);
-      return;
+    // Special handling for jynxzi card smash button
+    if (currentCharacter && currentCharacter.id === 'jynxzi' && response === 'smash') {
+      // Set required clicks on first attempt if not already set
+      if (jynxziButtonClicks === 0) {
+        const requiredClicks = Math.floor(Math.random() * 11) + 5; // Random between 5-15
+        setJynxziRequiredClicks(requiredClicks);
+        // Move button on first click and return
+        const buttonWidth = 200;
+        const buttonHeight = 60;
+        
+        // Get viewport dimensions
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Ensure we have valid viewport dimensions
+        if (viewportWidth <= 0 || viewportHeight <= 0) {
+          console.error('Invalid viewport dimensions:', { viewportWidth, viewportHeight });
+          setJynxziButtonPosition({ x: 100, y: 100 }); // Safe fallback
+          setJynxziButtonClicks(1);
+          return;
+        }
+        
+        // Calculate safe bounds ensuring button is always visible
+        // Use smaller padding to avoid negative bounds
+        const padding = Math.min(50, Math.min(viewportWidth, viewportHeight) / 8);
+        const minX = padding;
+        const minY = padding;
+        const maxX = viewportWidth - buttonWidth - padding;
+        const maxY = viewportHeight - buttonHeight - padding;
+        
+        // Validate bounds and ensure they're reasonable
+        if (maxX <= minX || maxY <= minY || maxX < 0 || maxY < 0) {
+          console.error('Invalid bounds calculated:', { maxX, maxY, minX, minY, viewportWidth, viewportHeight, padding });
+          // Use safe center position
+          const safeX = Math.max(0, Math.min(viewportWidth - buttonWidth, viewportWidth / 2 - buttonWidth / 2));
+          const safeY = Math.max(0, Math.min(viewportHeight - buttonHeight, viewportHeight / 2 - buttonHeight / 2));
+          setJynxziButtonPosition({ x: safeX, y: safeY });
+          setJynxziButtonClicks(1);
+          return;
+        }
+        
+        // Generate random position within safe bounds
+        const newX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+        const newY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+        
+        // Final safety check - ensure position is within bounds
+        const finalX = Math.max(minX, Math.min(maxX, newX));
+        const finalY = Math.max(minY, Math.min(maxY, newY));
+        
+        
+        setJynxziButtonPosition({ x: finalX, y: finalY });
+        setJynxziButtonClicks(1);
+        return; // Don't process the response yet
+      }
+      
+      const newClickCount = jynxziButtonClicks + 1;
+      setJynxziButtonClicks(newClickCount);
+      
+      if (newClickCount < jynxziRequiredClicks) {
+        // Move button to random position within viewport bounds
+        const buttonWidth = 200;
+        const buttonHeight = 60;
+        
+        // Get viewport dimensions
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Ensure we have valid viewport dimensions
+        if (viewportWidth <= 0 || viewportHeight <= 0) {
+          console.error('Invalid viewport dimensions on subsequent click:', { viewportWidth, viewportHeight });
+          setJynxziButtonPosition({ x: 100, y: 100 }); // Safe fallback
+          return;
+        }
+        
+        // Calculate safe bounds ensuring button is always visible
+        // Use smaller padding to avoid negative bounds
+        const padding = Math.min(50, Math.min(viewportWidth, viewportHeight) / 8);
+        const minX = padding;
+        const minY = padding;
+        const maxX = viewportWidth - buttonWidth - padding;
+        const maxY = viewportHeight - buttonHeight - padding;
+        
+        // Validate bounds and ensure they're reasonable
+        if (maxX <= minX || maxY <= minY || maxX < 0 || maxY < 0) {
+          console.error('Invalid bounds calculated on subsequent click:', { maxX, maxY, minX, minY, viewportWidth, viewportHeight, padding });
+          // Use safe center position
+          const safeX = Math.max(0, Math.min(viewportWidth - buttonWidth, viewportWidth / 2 - buttonWidth / 2));
+          const safeY = Math.max(0, Math.min(viewportHeight - buttonHeight, viewportHeight / 2 - buttonHeight / 2));
+          setJynxziButtonPosition({ x: safeX, y: safeY });
+          return;
+        }
+        
+        // Generate random position within safe bounds
+        const newX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+        const newY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+        
+        // Final safety check - ensure position is within bounds
+        const finalX = Math.max(minX, Math.min(maxX, newX));
+        const finalY = Math.max(minY, Math.min(maxY, newY));
+        
+        
+        setJynxziButtonPosition({ x: finalX, y: finalY });
+        return; // Don't process the response yet
+      } else {
+        // Show confirmation dialog for final jynxzi smash
+        setPendingResponse('smash');
+        setShowConfirmation(true);
+        return; // Don't process the response yet
+      }
     }
     
-    // Inline the executeResponse logic to avoid dependency issues
-    const gameCharacters = shuffledCharacters.length > 0 ? shuffledCharacters : characters;
-    const currentCharacter = gameCharacters[currentIndex];
+    // Start card animation
+    setSlideDirection(response);
+    setCardAnimationState(response === 'smash' ? 'sliding-right' : 'sliding-left');
+    
+    // Animate card sliding
+    const animateSlide = () => {
+      const duration = 600; // 600ms for smooth animation
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function for smooth animation
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        setSlideProgress(easeOut);
+        setCardRotation(response === 'smash' ? easeOut * 15 : easeOut * -15);
+        setCardScale(1 - easeOut * 0.1);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete, process the response
+          processResponse(response, currentCharacter);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    };
+    
+    animateSlide();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shuffledCharacters, currentIndex, jynxziButtonClicks, cardStack, jynxziRequiredClicks]);
+
+  const createParticles = (response) => {
+    const particleCount = 8;
+    const newParticles = [];
+    
+    for (let i = 0; i < particleCount; i++) {
+      newParticles.push({
+        id: Date.now() + i,
+        x: Math.random() * 320 - 160, // Random position around card center
+        y: Math.random() * 384 - 192,
+        vx: (Math.random() - 0.5) * 200, // Random velocity
+        vy: (Math.random() - 0.5) * 200,
+        color: response === 'smash' ? '#10b981' : '#ef4444', // Green for smash, red for pass
+        size: Math.random() * 4 + 2,
+        life: 1.0
+      });
+    }
+    
+    setParticles(prev => [...prev, ...newParticles]);
+    
+    // Remove particles after animation
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
+    }, 1000);
+  };
+
+  const processResponse = (response, currentCharacter) => {
+    // Create particle effects
+    createParticles(response);
     
     // Play sound effect
     if (response === 'smash') {
@@ -60,7 +264,7 @@ function SmashOrPass({ showAgeVerification = false }) {
       smashAudio.volume = 0.3;
       smashAudio.play().catch(() => {});
     } else {
-      const passAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      const passAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSunEiBC13yO/eizEIHWq+8+OWT');
       passAudio.volume = 0.2;
       passAudio.play().catch(() => {});
     }
@@ -70,16 +274,44 @@ function SmashOrPass({ showAgeVerification = false }) {
       [currentCharacter.id]: response
     }));
 
-    // Add a delay for animation
-    setTimeout(() => {
-      if (currentIndex < gameCharacters.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-      } else {
-        setShowResults(true);
-        setGameState('results');
+    // Prepare next card
+    const gameCharacters = shuffledCharacters.length > 0 ? shuffledCharacters : characters;
+    if (currentIndex < gameCharacters.length - 1) {
+      // Update card stack
+      const newStack = cardStack.slice(1); // Remove top card
+      if (currentIndex + 5 < gameCharacters.length) {
+        // Add new card to bottom of stack
+        const newCard = gameCharacters[currentIndex + 5];
+        newStack.push({
+          character: newCard,
+          zIndex: 95,
+          scale: 0.8,
+          translateY: 8,
+          opacity: 0.5
+        });
       }
-    }, 300);
-  }, [shuffledCharacters, currentIndex]);
+      
+      // Animate stack update
+      setTimeout(() => {
+        setCardStack(newStack.map((card, index) => ({
+          ...card,
+          zIndex: 100 - index,
+          scale: 1 - (index * 0.05),
+          translateY: index * 2,
+          opacity: 1 - (index * 0.1)
+        })));
+        setCurrentIndex(prev => prev + 1);
+        setCardAnimationState('idle');
+        setSlideProgress(0);
+        setCardRotation(0);
+        setCardScale(1);
+        setSlideDirection(null);
+      }, 200);
+    } else {
+      setShowResults(true);
+      setGameState('results');
+    }
+  };
 
   // Keyboard controls
   useEffect(() => {
@@ -106,52 +338,94 @@ function SmashOrPass({ showAgeVerification = false }) {
 
 
 
-  const executeResponse = (response) => {
-    const gameCharacters = shuffledCharacters.length > 0 ? shuffledCharacters : characters;
-    const currentCharacter = gameCharacters[currentIndex];
-    
 
-    
-    // Play sound effect
-    if (response === 'smash') {
-      // Smash sound effect
-      const smashAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-      smashAudio.volume = 0.3;
-      smashAudio.play().catch(() => {}); // Ignore errors if audio fails
-    } else {
-      // Pass sound effect (whoosh)
-      const passAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-      passAudio.volume = 0.2;
-      passAudio.play().catch(() => {}); // Ignore errors if audio fails
-    }
-    
-    setResponses(prev => ({
-      ...prev,
-      [currentCharacter.id]: response
-    }));
-
-    // Add a delay for animation
-    setTimeout(() => {
-      if (currentIndex < gameCharacters.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-      } else {
-        setShowResults(true);
-        setGameState('results');
-      }
-    }, 300);
-  };
 
   const confirmResponse = () => {
     setShowConfirmation(false);
-    executeResponse(pendingResponse);
+    
+    // Reset jynxzi state if this was a jynxzi confirmation
+    const currentCharacter = cardStack.length > 0 ? cardStack[0].character : null;
+    if (currentCharacter && currentCharacter.id === 'jynxzi') {
+      setJynxziButtonClicks(0);
+      setJynxziRequiredClicks(0);
+      setJynxziButtonPosition({ x: 0, y: 0 });
+    }
+    
+    // Start card animation like normal response
+    const response = pendingResponse;
+    setSlideDirection(response);
+    setCardAnimationState(response === 'smash' ? 'sliding-right' : 'sliding-left');
+    
+    // Animate card sliding
+    const animateSlide = () => {
+      const duration = 600; // 600ms for smooth animation
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function for smooth animation
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        setSlideProgress(easeOut);
+        setCardRotation(response === 'smash' ? easeOut * 15 : easeOut * -15);
+        setCardScale(1 - easeOut * 0.1);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete, process the response
+          processResponse(response, currentCharacter);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    };
+    
+    animateSlide();
     setPendingResponse(null);
   };
 
   const cancelResponse = () => {
     setShowConfirmation(false);
+    
+    // Reset jynxzi state if this was a jynxzi confirmation
+    const currentCharacter = cardStack.length > 0 ? cardStack[0].character : null;
+    if (currentCharacter && currentCharacter.id === 'jynxzi') {
+      setJynxziButtonClicks(0);
+      setJynxziRequiredClicks(0);
+      setJynxziButtonPosition({ x: 0, y: 0 });
+    }
+    
     setPendingResponse(null);
   };
 
+  const handleFormChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    // Create mailto link with form data
+    const subject = encodeURIComponent(`${formData.type === "suggestion" ? "Card Suggestion" : "Collaboration Inquiry"} - Smash or Pass Game`);
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n` +
+      `Type: ${formData.type}\n\n` +
+      `Message:\n${formData.message}\n\n` +
+      `---\nSent from Smash or Pass Game`
+    );
+    
+    window.open(`mailto:social@tribegaming.gg?subject=${subject}&body=${body}`, "_blank");
+    
+    // Reset form and close modal
+    setFormData({ name: "", email: "", type: "suggestion", message: "" });
+    setShowSuggestionsModal(false);
+  };
   const exitToResults = () => {
     setShowResults(true);
     setGameState('results');
@@ -181,8 +455,46 @@ function SmashOrPass({ showAgeVerification = false }) {
   };
 
   const shuffleCharacters = () => {
-    const shuffled = [...characters].sort(() => Math.random() - 0.5);
+    // Find jynxzi card
+    const jynxziCard = characters.find(char => char.id === 'jynxzi');
+    const otherCards = characters.filter(char => char.id !== 'jynxzi');
+    
+    // Shuffle other cards
+    const shuffledOthers = otherCards.sort(() => Math.random() - 0.5);
+    
+    // Insert jynxzi in first 25 positions (random position between 0-24)
+    const jynxziPosition = Math.floor(Math.random() * 25);
+    const shuffled = [
+      ...shuffledOthers.slice(0, jynxziPosition),
+      jynxziCard,
+      ...shuffledOthers.slice(jynxziPosition)
+    ];
+    
+    // Reset jynxzi button state and set default position
+    setJynxziButtonClicks(0);
+    setJynxziRequiredClicks(0);
+    setJynxziButtonPosition({ x: 100, y: 100 }); // Default safe position
+    
     setShuffledCharacters(shuffled);
+    
+    // Initialize card stack with first 5 cards
+    const initialStack = shuffled.slice(0, 5).map((char, index) => ({
+      character: char,
+      zIndex: 100 - index,
+      scale: 1 - (index * 0.05),
+      translateY: index * 2,
+      opacity: 1 - (index * 0.1)
+    }));
+    setCardStack(initialStack);
+    setCardAnimationState('revealing');
+    setSlideProgress(0);
+    setCardRotation(0);
+    setCardScale(1);
+    
+    // Trigger card reveal animation
+    setTimeout(() => {
+      setCardAnimationState('idle');
+    }, 500);
   };
 
   const resetGame = () => {
@@ -320,44 +632,30 @@ function SmashOrPass({ showAgeVerification = false }) {
               </div>
             </div>
 
-            {/* Simple Card Display */}
-            <div className="flex-1 flex items-center justify-center min-h-0">
-              <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 shadow-2xl max-w-2xl w-full">
-                <div className="text-center">
-                  {/* Character Image */}
-                  <div className="relative mb-6">
-                    <div className="w-64 h-64 md:w-80 md:h-80 mx-auto rounded-lg overflow-hidden shadow-lg border-2 border-gray-600 bg-gray-800">
-                      <img
-                        src={currentCharacter.imageUrl}
-                        alt={currentCharacter.name}
-                        className="w-full h-full object-contain p-2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Character Info */}
-                  <h2 className="text-3xl md:text-4xl font-black text-white mb-3 drop-shadow-lg">
-                    {currentCharacter.name}
-                  </h2>
-                  <p className="text-gray-300 text-lg mb-6 max-w-2xl mx-auto leading-relaxed">
-                    {currentCharacter.description}
-                  </p>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                    <button
-                      onClick={() => handleResponse('pass')}
-                      className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-5 px-10 rounded-lg text-2xl transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide"
-                      style={{
-                        boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
-                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
-                      }}
-                    >
-                      🤮 PASS
-                    </button>
+            {/* Animated Card Stack Display */}
+            <div className="flex-1 flex items-center justify-center min-h-0 relative">
+              {/* Card Stack Container */}
+              <div className="relative w-80 h-96">
+                {/* Action Buttons */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-4 w-80 z-50" style={{ bottom: '-80px' }}>
+                  <button
+                    onClick={() => handleResponse('pass')}
+                    disabled={cardAnimationState !== 'idle'}
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap"
+                    style={{
+                      boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+                    }}
+                  >
+                    🤮 PASS
+                  </button>
+                  
+                  {/* Normal Smash Button - only show when NOT Jynxzi or before first click */}
+                  {!(cardStack.length > 0 && cardStack[0].character.id === 'jynxzi' && jynxziButtonClicks > 0 && jynxziButtonClicks < jynxziRequiredClicks) && (
                     <button
                       onClick={() => handleResponse('smash')}
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-5 px-10 rounded-lg text-2xl transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide"
+                      disabled={cardAnimationState !== 'idle'}
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap"
                       style={{
                         boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
@@ -365,15 +663,157 @@ function SmashOrPass({ showAgeVerification = false }) {
                     >
                       🍆 SMASH
                     </button>
+                  )}
+                  
+                  {/* Empty placeholder to maintain flex layout when Jynxzi is active */}
+                  {cardStack.length > 0 && cardStack[0].character.id === 'jynxzi' && jynxziButtonClicks > 0 && jynxziButtonClicks < jynxziRequiredClicks && (
+                    <div className="flex-1"></div>
+                  )}
+                </div>
+                
+                {/* Moving Jynxzi Smash Button - rendered separately outside flex container */}
+                {cardStack.length > 0 && cardStack[0].character.id === 'jynxzi' && jynxziButtonClicks > 0 && jynxziButtonClicks < jynxziRequiredClicks && (() => {
+                  const buttonX = Math.max(0, Math.min(window.innerWidth - 200, jynxziButtonPosition.x || 100));
+                  const buttonY = Math.max(0, Math.min(window.innerHeight - 60, jynxziButtonPosition.y || 100));
+                  
+                  return (
+                    <button
+                      onClick={() => handleResponse('smash')}
+                      disabled={cardAnimationState !== 'idle'}
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap"
+                      style={{
+                        position: 'fixed',
+                        left: `${buttonX}px`,
+                        top: `${buttonY}px`,
+                        zIndex: 9999,
+                        width: '200px',
+                        height: '60px',
+                        boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        backgroundColor: '#f97316', // Fallback color
+                        display: 'block' // Ensure it's displayed
+                      }}
+                    >
+                      🍆 SMASH
+                    </button>
+                  );
+                })()}
+
+                {/* Swipe Direction Indicators */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Pass indicator (left) */}
+                  <div className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-red-500 text-6xl transition-all duration-300 ${
+                    slideDirection === 'pass' ? 'opacity-60 scale-110' : 'opacity-20'
+                  }`}>
+                    ←
+                  </div>
+                  {/* Smash indicator (right) */}
+                  <div className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-green-500 text-6xl transition-all duration-300 ${
+                    slideDirection === 'smash' ? 'opacity-60 scale-110' : 'opacity-20'
+                  }`}>
+                    →
                   </div>
                 </div>
+                {/* Background cards in stack */}
+                {cardStack.slice(1).map((card, index) => (
+                  <div
+                    key={`stack-${card.character.id}-${index}`}
+                    className="absolute inset-0 transition-all duration-500 ease-out card-stack-depth"
+                    style={{
+                      zIndex: card.zIndex,
+                      transform: `scale(${card.scale}) translateY(${card.translateY}px)`,
+                      opacity: card.opacity,
+                    }}
+                  >
+                    <div className="w-full h-full bg-gray-800 rounded-2xl border-2 border-gray-600 shadow-xl">
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-gray-700 rounded-full opacity-30"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Main card with animation */}
+                {cardStack.length > 0 && (
+                  <div
+                    className={`absolute inset-0 transition-all duration-300 ease-out card-hover ${
+                      cardAnimationState === 'idle' ? 'card-reveal' : ''
+                    }`}
+                    style={{
+                      zIndex: cardStack[0].zIndex,
+                      transform: `
+                        translateX(${slideDirection === 'smash' ? slideProgress * 400 : slideDirection === 'pass' ? -slideProgress * 400 : 0}px)
+                        translateY(${slideProgress * 50}px)
+                        rotate(${cardRotation}deg)
+                        scale(${cardScale})
+                      `,
+                      opacity: 1 - slideProgress * 0.5,
+                    }}
+                  >
+                    <div className="w-full h-full bg-gray-900 rounded-2xl border-2 border-gray-600 shadow-2xl overflow-hidden card-stack-depth">
+                      <div className="relative w-full h-full">
+                        {/* Character Name */}
+                        <div className="p-3 text-center">
+                          <h2 className="text-xl font-black text-white drop-shadow-lg">
+                            {cardStack[0].character.name}
+                          </h2>
+                        </div>
+                        
+                        {/* Character Image */}
+                        <div className="w-full h-52 flex items-center justify-center p-2">
+                          <div className="w-44 h-44 rounded-xl overflow-hidden shadow-lg">
+                            <img
+                              src={cardStack[0].character.imageUrl}
+                              alt={cardStack[0].character.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Character Info */}
+                        <div className="p-3 text-center">
+                          <p className="text-gray-300 text-sm mb-3 leading-tight">
+                            {cardStack[0].character.description}
+                          </p>
+                          
+                          {/* Rarity and Elixir */}
+                          <div className="flex justify-center items-center space-x-4">
+                            <div className={`px-3 py-1 rounded-full text-xs font-black text-white bg-black bg-opacity-80 backdrop-blur-sm border ${getRarityColor(cardStack[0].character.rarity)}`}>
+                              {cardStack[0].character.rarity.toUpperCase()}
+                            </div>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shadow-lg ${getElixirColor(cardStack[0].character.elixir)}`}>
+                              {cardStack[0].character.elixir}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Particle Effects */}
+                {particles.map(particle => (
+                  <div
+                    key={particle.id}
+                    className="absolute w-2 h-2 rounded-full particle"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(${particle.x}px, ${particle.y}px)`,
+                      backgroundColor: particle.color,
+                      width: `${particle.size}px`,
+                      height: `${particle.size}px`,
+                      opacity: particle.life,
+                    }}
+                  />
+                )                )}
               </div>
             </div>
 
             {/* Instructions */}
             <div className="text-center mt-4 mb-2 flex-shrink-0">
               <p className="text-white text-sm opacity-80 font-medium">
-                Click <span className="text-red-400 font-bold">PASS</span> or <span className="text-green-400 font-bold">SMASH</span> to make your choice!<br />
+                Click <span className="text-red-400 font-bold">PASS</span> or <span className="text-orange-400 font-bold">SMASH</span> to make your choice!<br />
                 <span className="text-gray-300 text-sm">Or use ← (left arrow) for PASS and → (right arrow) for SMASH</span>
               </p>
             </div>
@@ -381,14 +821,14 @@ function SmashOrPass({ showAgeVerification = false }) {
 
           {/* Right Side - Smashed Cards */}
           <div className="w-48 flex flex-col items-center justify-center">
-            <div className="text-green-500 text-sm font-bold mb-2">SMASHED ({smashedCards.length})</div>
+            <div className="text-orange-500 text-sm font-bold mb-2">SMASHED ({smashedCards.length})</div>
             <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
               {Array.from({ length: 20 }, (_, index) => {
                 const card = smashedCards[smashedCards.length - 1 - index];
                 return (
                   <div 
                     key={index}
-                    className="w-16 h-16 rounded-lg overflow-hidden border-2 border-green-500 bg-gray-800 transition-transform duration-200"
+                    className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-500 bg-gray-800 transition-transform duration-200"
                     style={{ zIndex: 100 - index }}
                   >
                     {card ? (
@@ -418,11 +858,11 @@ function SmashOrPass({ showAgeVerification = false }) {
                 <h3 className="text-2xl font-black text-white mb-4">
                   Are you sure?
                 </h3>
-                <p className="text-gray-300 text-lg mb-8">
-                  You're about to <span className={`font-bold ${pendingResponse === 'smash' ? 'text-green-400' : 'text-red-400'}`}>
-                    {pendingResponse === 'smash' ? 'SMASH' : 'PASS'}
-                  </span> on <span className="text-yellow-400 font-bold">{currentCharacter.name}</span>!
-                </p>
+                                  <p className="text-gray-300 text-lg mb-8">
+                    You're about to <span className={`font-bold ${pendingResponse === 'smash' ? 'text-orange-400' : 'text-red-400'}`}>
+                      {pendingResponse === 'smash' ? 'SMASH' : 'PASS'}
+                    </span> on <span className="text-yellow-400 font-bold">{currentCharacter.name}</span>!
+                  </p>
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={cancelResponse}
@@ -434,7 +874,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                     onClick={confirmResponse}
                     className={`font-bold py-3 px-6 rounded-xl transition-all duration-200 ${
                       pendingResponse === 'smash' 
-                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white' 
                         : 'bg-red-500 hover:bg-red-600 text-white'
                     }`}
                   >
@@ -445,6 +885,17 @@ function SmashOrPass({ showAgeVerification = false }) {
             </div>
           </div>
         )}
+
+
+
+        {/* Footer */}
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm opacity-70 z-40">
+          <p>
+            created by: <a href="https://x.com/tribegaming" target="_blank" rel="noopener noreferrer" className="font-semibold text-orange-400 hover:text-orange-300 underline">@biglunchclub</a> - 
+            <a href="https://www.stjude.org/give.html" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300 underline ml-1">support</a> - 
+            <button onClick={() => setShowSuggestionsModal(true)} className="text-orange-400 hover:text-orange-300 underline ml-1 bg-transparent border-none cursor-pointer">request cards/collaborate</button>
+          </p>
+        </div>
       </div>
     );
   }
@@ -562,67 +1013,7 @@ function SmashOrPass({ showAgeVerification = false }) {
           const smashPercentage = totalRated > 0 ? Math.round((smashList.length / totalRated) * 100) : 0;
 
           return (
-            <div className="h-screen w-screen bg-black p-4 flex items-center justify-center relative overflow-hidden">
-              {/* Blurred Video Player Background */}
-              <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 opacity-40">
-                {characters.slice(0, 48).map((character, index) => {
-                  const explicitTitles = [
-                    "Hot MILF Gets Wild",
-                    "Amateur Teen Fucked",
-                    "Busty Babe Takes It All",
-                    "Hardcore Anal Action",
-                    "Threesome Gone Wild",
-                    "Step Sister Surprise",
-                    "Big Tits Big Fun",
-                    "Creampie Compilation",
-                    "Gangbang Orgy",
-                    "Lesbian Lovers",
-                    "Blonde Bombshell",
-                    "Dirty Talk Delight",
-                    "Rough Sex Session",
-                    "Cumshot Collection",
-                    "POV Fucking",
-                    "BDSM Playtime",
-                    "Swinger Party",
-                    "Nude Beach Fun",
-                    "Office Romance",
-                    "Teacher Student",
-                    "Nurse Exam",
-                    "Massage Parlor",
-                    "Strip Club",
-                    "Hotel Hookup"
-                  ];
-                  const viewCounts = ["2.1M", "1.8M", "3.2M", "956K", "1.5M", "2.7M", "1.3M", "4.1M", "789K", "2.9M", "1.7M", "3.5M", "2.3M", "1.9M", "3.8M", "1.4M", "2.6M", "1.1M", "3.9M", "2.4M", "1.6M", "3.1M", "2.8M", "1.2M"];
-                  const likePercentages = ["94%", "87%", "91%", "96%", "89%", "93%", "85%", "98%", "82%", "95%", "88%", "92%", "90%", "86%", "97%", "84%", "94%", "81%", "99%", "91%", "87%", "93%", "89%", "83%"];
-                  
-                  const title = explicitTitles[index % explicitTitles.length];
-                  const views = viewCounts[index % viewCounts.length];
-                  const likes = likePercentages[index % likePercentages.length];
-                  
-                  return (
-                    <div key={`bg-${character.id}`} className="relative group">
-                      <div className="w-full aspect-video bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
-                        <img
-                          src={character.imageUrl}
-                          alt={character.name}
-                          className="w-full h-full object-cover filter blur-md"
-                        />
-                        {/* Video Player Overlay */}
-                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                          <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                            <div className="w-0 h-0 border-l-4 border-l-white border-t-2 border-t-transparent border-b-2 border-b-transparent ml-1"></div>
-                          </div>
-                        </div>
-                        {/* Video Metadata */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-80 p-2">
-                          <div className="text-white text-xs font-semibold truncate">{title}</div>
-                          <div className="text-gray-300 text-xs">{views} views • {likes}</div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="h-screen w-screen bg-black p-4 flex items-center justify-center">
               <div className="max-w-4xl mx-auto w-full">
                 <div className="text-center mb-8 animate-fade-in">
                   <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -635,9 +1026,9 @@ function SmashOrPass({ showAgeVerification = false }) {
                       <div className="text-3xl font-black text-white">{totalRated}</div>
                       <div className="text-sm text-gray-300">Total Rated</div>
                     </div>
-                    <div className="bg-gray-900 border-2 border-green-500 rounded-2xl p-4">
-                      <div className="text-3xl font-black text-green-400">{smashList.length}</div>
-                      <div className="text-sm text-green-300">Smash</div>
+                    <div className="bg-gray-900 border-2 border-orange-500 rounded-2xl p-4">
+                      <div className="text-3xl font-black text-orange-400">{smashList.length}</div>
+                      <div className="text-sm text-orange-300">Smash</div>
                     </div>
                     <div className="bg-gray-900 border-2 border-red-500 rounded-2xl p-4">
                       <div className="text-3xl font-black text-red-400">{passList.length}</div>
@@ -662,7 +1053,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Smash List */}
                   <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-6 shadow-2xl animate-slide-in">
-                    <h2 className="text-2xl font-bold text-green-400 mb-4 flex items-center">
+                    <h2 className="text-2xl font-bold text-orange-400 mb-4 flex items-center">
                       <span className="text-3xl mr-2">🍆</span>
                       Smash ({smashList.length})
                     </h2>
@@ -693,7 +1084,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                     {smashList.length > 0 && (
                       <button
                         onClick={() => createDeck('smash')}
-                        className="w-full mt-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                        className="w-full mt-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
                       >
                         🃏 Create Smash Deck
                       </button>
@@ -817,6 +1208,104 @@ function SmashOrPass({ showAgeVerification = false }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suggestions/Collaboration Modal */}
+      {showSuggestionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-black border-2 border-gray-700 rounded-lg shadow-2xl max-w-md mx-4 p-8 w-full">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-white mb-4">💡 Suggestions & Collaboration</h2>
+              <p className="text-gray-300 mb-6">
+                Got ideas for new cards? Want to collaborate? Let's connect!
+              </p>
+              
+              <form onSubmit={handleFormSubmit} className="text-left space-y-4">
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleFormChange}
+                    required
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    required
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">
+                    Type
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="suggestion">Card Suggestion</option>
+                    <option value="collaboration">Collaboration/Partnership</option>
+                    <option value="feedback">Feedback</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-white text-sm font-bold mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleFormChange}
+                    rows="4"
+                    required
+                    placeholder="Share your ideas, collaboration proposals, or feedback..."
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-orange-500 resize-none"
+                  />
+                </div>
+                
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowSuggestionsModal(false)}
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded transition-all duration-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded transition-all duration-300"
+                  >
+                    Send Message
+                  </button>
+                </div>
+              </form>
+              
+              <div className="mt-6 pt-4 border-t border-gray-600">
+                <p className="text-gray-400 text-xs">
+                  This will open your email client with a pre-filled message.
+                </p>
+              </div>
             </div>
           </div>
         </div>
