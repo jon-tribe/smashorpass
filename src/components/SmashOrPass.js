@@ -32,9 +32,7 @@ function SmashOrPass({ showAgeVerification = false }) {
   
 
   const [slideDirection, setSlideDirection] = useState(null);
-  const [slideProgress, setSlideProgress] = useState(0);
-  const [cardRotation, setCardRotation] = useState(0);
-  const [cardScale, setCardScale] = useState(1);
+
 
   const [particles, setParticles] = useState([]);
   // Preload images for smooth transitions and start game
@@ -199,38 +197,23 @@ function SmashOrPass({ showAgeVerification = false }) {
       }
     }
     
-    // Start card animation
+    // Start card animation with CSS-based approach for smooth performance
     setSlideDirection(response);
-    setCardAnimationState(response === 'smash' ? 'sliding-right' : 'sliding-left');
     
-    // Animate card sliding
-    const animateSlide = () => {
-      const duration = 600; // 600ms for smooth animation
-      const startTime = Date.now();
-      
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Easing function for smooth animation
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        
-        setSlideProgress(easeOut);
-        setCardRotation(response === 'smash' ? easeOut * 15 : easeOut * -15);
-        setCardScale(1 - easeOut * 0.1);
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Animation complete, process the response
-          processResponse(response, currentCharacter);
-        }
-      };
-      
-      requestAnimationFrame(animate);
-    };
+    // Use CSS animations instead of React state updates for smooth performance
+    const isMobile = window.innerWidth < 640;
+    const animationClass = response === 'smash' 
+      ? (isMobile ? 'card-slide-right-mobile' : 'card-slide-right')
+      : (isMobile ? 'card-slide-left-mobile' : 'card-slide-left');
     
-    animateSlide();
+    // Set animation state to trigger CSS animation
+    setCardAnimationState(animationClass);
+    
+    // Wait for CSS animation to complete, then process response
+    const animationDuration = isMobile ? 400 : 600;
+    setTimeout(() => {
+      processResponse(response, currentCharacter);
+    }, animationDuration);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffledCharacters, currentIndex, jynxziButtonClicks, cardStack, jynxziRequiredClicks]);
 
@@ -313,9 +296,7 @@ function SmashOrPass({ showAgeVerification = false }) {
         })));
         setCurrentIndex(prev => prev + 1);
         setCardAnimationState('idle');
-        setSlideProgress(0);
-        setCardRotation(0);
-        setCardScale(1);
+        setCardAnimationState('idle');
         setSlideDirection(null);
       }, 200);
     } else {
@@ -362,39 +343,25 @@ function SmashOrPass({ showAgeVerification = false }) {
       setJynxziButtonPosition({ x: 0, y: 0 });
     }
     
-    // Start card animation like normal response
+    // Start card animation with CSS-based approach for smooth performance
     const response = pendingResponse;
     setSlideDirection(response);
-    setCardAnimationState(response === 'smash' ? 'sliding-right' : 'sliding-left');
     
-    // Animate card sliding
-    const animateSlide = () => {
-      const duration = 600; // 600ms for smooth animation
-      const startTime = Date.now();
-      
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Easing function for smooth animation
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        
-        setSlideProgress(easeOut);
-        setCardRotation(response === 'smash' ? easeOut * 15 : easeOut * -15);
-        setCardScale(1 - easeOut * 0.1);
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Animation complete, process the response
-          processResponse(response, currentCharacter);
-        }
-      };
-      
-      requestAnimationFrame(animate);
-    };
+    // Use CSS animations instead of React state updates for smooth performance
+    const isMobile = window.innerWidth < 640;
+    const animationClass = response === 'smash' 
+      ? (isMobile ? 'card-slide-right-mobile' : 'card-slide-right')
+      : (isMobile ? 'card-slide-left-mobile' : 'card-slide-left');
     
-    animateSlide();
+    // Set animation state to trigger CSS animation
+    setCardAnimationState(animationClass);
+    
+    // Wait for CSS animation to complete, then process response
+    const animationDuration = isMobile ? 400 : 600;
+    setTimeout(() => {
+      processResponse(response, currentCharacter);
+    }, animationDuration);
+    
     setPendingResponse(null);
   };
 
@@ -524,9 +491,6 @@ function SmashOrPass({ showAgeVerification = false }) {
     }));
     setCardStack(initialStack);
     setCardAnimationState('revealing');
-    setSlideProgress(0);
-    setCardRotation(0);
-    setCardScale(1);
     
     // Trigger card reveal animation
     setTimeout(() => {
@@ -813,17 +777,12 @@ function SmashOrPass({ showAgeVerification = false }) {
                 {cardStack.length > 0 && (
                   <div
                     className={`absolute inset-0 transition-all duration-200 ease-out card-hover ${
-                      cardAnimationState === 'idle' ? 'card-reveal' : ''
+                      cardAnimationState === 'idle' ? 'card-reveal' : 
+                      cardAnimationState === 'card-slide-left' || cardAnimationState === 'card-slide-left-mobile' ? cardAnimationState :
+                      cardAnimationState === 'card-slide-right' || cardAnimationState === 'card-slide-right-mobile' ? cardAnimationState : ''
                     }`}
                     style={{
                       zIndex: cardStack[0].zIndex,
-                      transform: `
-                        translateX(${slideDirection === 'smash' ? slideProgress * (window.innerWidth < 640 ? 250 : 300) : slideDirection === 'pass' ? -slideProgress * (window.innerWidth < 640 ? 250 : 300) : 0}px)
-                        translateY(${slideProgress * (window.innerWidth < 640 ? 20 : 30)}px)
-                        rotate(${cardRotation}deg)
-                        scale(${cardScale})
-                      `,
-                      opacity: 1 - slideProgress * 0.5,
                     }}
                   >
                     <div className="w-full h-full bg-gray-900 rounded-2xl border-2 border-gray-600 shadow-2xl overflow-hidden card-stack-depth">
