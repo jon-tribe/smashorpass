@@ -1059,12 +1059,13 @@ function SmashOrPass({ showAgeVerification = false }) {
           const smashPercentage = totalRated > 0 ? Math.round((smashList.length / totalRated) * 100) : 0;
 
           return (
-            <div className="min-h-screen w-full p-3 sm:p-4 flex items-start sm:items-center justify-center overflow-y-auto" style={{
+            <div className="w-full p-3 sm:p-4 flex items-start justify-center overflow-y-auto" style={{
               background: `
                 linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)
-              `
+              `,
+              minHeight: '100vh'
             }}>
-              <div className="w-full max-w-4xl mx-auto px-2 sm:px-4">
+              <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-8">
                 <div className="text-center mb-6 sm:mb-8 animate-fade-in">
                   <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-3 sm:mb-4">
                     Your Results! 🏆
@@ -1139,7 +1140,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                       <span className="text-2xl sm:text-3xl mr-2">🍆</span>
                       Smash ({smashList.length})
                     </h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+                    <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
                       {smashList.map(character => (
                         <div key={character.id} className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-800 border border-gray-600 rounded-lg">
                           <img
@@ -1179,7 +1180,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                       <span className="text-2xl sm:text-3xl mr-2">💔</span>
                       Pass ({passList.length})
                     </h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+                    <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
                       {passList.map(character => (
                         <div key={character.id} className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-800 border border-gray-600 rounded-lg">
                           <img
