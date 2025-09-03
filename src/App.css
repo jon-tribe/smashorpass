@@ -351,9 +351,10 @@
 
 /* Transition state to prevent flash */
 .card-transitioning {
-  opacity: 0;
+  opacity: 0 !important;
   pointer-events: none;
-  transition: opacity 0.1s ease-out;
+  visibility: hidden;
+  transition: none;
 }
 
 .card-reveal {

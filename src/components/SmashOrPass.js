@@ -1059,13 +1059,12 @@ function SmashOrPass({ showAgeVerification = false }) {
           const smashPercentage = totalRated > 0 ? Math.round((smashList.length / totalRated) * 100) : 0;
 
           return (
-            <div className="w-full p-3 sm:p-4 flex items-start justify-center overflow-y-auto" style={{
+            <div className="fixed inset-0 w-full h-full overflow-y-auto z-30" style={{
               background: `
                 linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)
-              `,
-              minHeight: '100vh'
+              `
             }}>
-              <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-8">
+              <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-8 min-h-full">
                 <div className="text-center mb-6 sm:mb-8 animate-fade-in">
                   <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-3 sm:mb-4">
                     Your Results! 🏆
