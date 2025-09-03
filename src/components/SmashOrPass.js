@@ -609,7 +609,7 @@ function SmashOrPass({ showAgeVerification = false }) {
           </div>
         </div>
         
-        <div className="relative z-10 h-full w-full p-3 sm:p-4 flex flex-col lg:flex-row lg:justify-between overflow-hidden lg:max-w-6xl lg:mx-auto">
+        <div className="relative z-20 h-full w-full p-3 sm:p-4 flex flex-col lg:flex-row lg:justify-between overflow-hidden lg:max-w-6xl lg:mx-auto">
           {/* Mobile: Simple text counters */}
           <div className="lg:hidden flex justify-between items-center mb-3 px-4 text-xs text-gray-300">
             <span>❌ Passed: {passedCards.length}</span>
@@ -926,7 +926,7 @@ function SmashOrPass({ showAgeVerification = false }) {
 
 
         {/* Footer - Better Separated */}
-        <div className="fixed bottom-0 left-0 right-0 z-10">
+        <div className="fixed bottom-0 left-0 right-0 z-0">
           <div className="bg-gradient-to-t from-black via-black/80 to-transparent pt-6 pb-2">
             <div className="flex flex-row items-center justify-center gap-1 sm:gap-2 whitespace-nowrap text-white text-xs opacity-70">
               <span>by: <a href="https://x.com/tribegaming" target="_blank" rel="noopener noreferrer" className="font-semibold text-orange-400 hover:text-orange-300 underline">@trb</a></span>
@@ -999,7 +999,7 @@ function SmashOrPass({ showAgeVerification = false }) {
           }}>
 
             
-            <div className="relative z-10 h-full w-full p-4 flex items-center justify-center">
+            <div className="relative z-20 h-full w-full p-4 flex items-center justify-center">
               <div className="max-w-6xl mx-auto w-full">
                 <div className="text-center mb-16 animate-fade-in">
                   <div className="mb-8">
