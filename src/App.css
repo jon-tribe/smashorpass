@@ -349,6 +349,13 @@
   transform: translateZ(0);
 }
 
+/* Transition state to prevent flash */
+.card-transitioning {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease-out;
+}
+
 .card-reveal {
   animation: cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }

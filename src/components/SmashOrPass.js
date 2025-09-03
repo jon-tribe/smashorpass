@@ -212,6 +212,8 @@ function SmashOrPass({ showAgeVerification = false }) {
     // Wait for CSS animation to complete, then process response
     const animationDuration = isMobile ? 400 : 600;
     setTimeout(() => {
+      // Hide the card during transition to prevent flash
+      setCardAnimationState('transitioning');
       processResponse(response, currentCharacter);
     }, animationDuration);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -359,6 +361,8 @@ function SmashOrPass({ showAgeVerification = false }) {
     // Wait for CSS animation to complete, then process response
     const animationDuration = isMobile ? 400 : 600;
     setTimeout(() => {
+      // Hide the card during transition to prevent flash
+      setCardAnimationState('transitioning');
       processResponse(response, currentCharacter);
     }, animationDuration);
     
@@ -778,6 +782,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                   <div
                     className={`absolute inset-0 transition-all duration-200 ease-out card-hover ${
                       cardAnimationState === 'idle' ? 'card-reveal' : 
+                      cardAnimationState === 'transitioning' ? 'card-transitioning' :
                       cardAnimationState === 'card-slide-left' || cardAnimationState === 'card-slide-left-mobile' ? cardAnimationState :
                       cardAnimationState === 'card-slide-right' || cardAnimationState === 'card-slide-right-mobile' ? cardAnimationState : ''
                     }`}
