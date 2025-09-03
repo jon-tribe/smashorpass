@@ -12,8 +12,8 @@ function App() {
   const renderHomePage = () => (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
       {/* Blurred Video Player Background */}
-      <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 opacity-20">
-        {characters.slice(0, 48).map((character, index) => {
+      <div className="absolute inset-0 grid grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-2 p-2 sm:p-4 opacity-20">
+        {characters.slice(0, window.innerWidth < 640 ? 24 : 48).map((character, index) => {
           const familyFriendlyTitles = [
             "Cute Cat Videos",
             "Funny Dog Moments",
@@ -72,10 +72,13 @@ function App() {
         })}
       </div>
       <div className="text-center max-w-2xl relative z-10">
-        <h1 className="text-5xl md:text-6xl font-black text-white mb-6">
-          <span className="text-white">Smash</span>
-          <span className="bg-orange-500 text-white px-4 py-2 rounded-lg ml-3 font-bold">Pass</span>
-        </h1>
+        <div className="mb-6">
+          <img 
+            src="/images/SmashPass.png" 
+            alt="Smash Pass" 
+            className="h-20 md:h-24 mx-auto"
+          />
+        </div>
         <p className="text-xl text-gray-300 mb-8">
           Rate your favorite Clash Royale characters! Swipe right for smash, left for pass.
         </p>
@@ -84,7 +87,7 @@ function App() {
             setShowAgeVerification(true);
             setCurrentGame('smash-or-pass');
           }}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+          className="bg-logo-orange hover:bg-orange-600 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
         >
           Start Playing
         </button>

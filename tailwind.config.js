@@ -10,7 +10,8 @@ module.exports = {
         'clash-gold': '#FFD700',
         'clash-blue': '#4A90E2',
         'clash-purple': '#9B59B6',
-        'clash-orange': '#E67E22',
+        'clash-orange': '#F7971D',
+        'logo-orange': '#F7971D',
         'clash-red': '#E74C3C',
       },
       animation: {

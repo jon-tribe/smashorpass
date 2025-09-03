@@ -10,6 +10,7 @@ function SmashOrPass({ showAgeVerification = false }) {
   const [pendingResponse, setPendingResponse] = useState(null);
   const [selectedDeck, setSelectedDeck] = useState(null); // 'smash' or 'pass' or null
   const [deckCards, setDeckCards] = useState([]);
+  const [deckReplacements, setDeckReplacements] = useState({});
   const [shuffledCharacters, setShuffledCharacters] = useState([]);
   
   // Simple card stack state
@@ -447,13 +448,39 @@ function SmashOrPass({ showAgeVerification = false }) {
     const shuffled = [...availableCards].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, Math.min(8, availableCards.length));
     
+    // Generate replacement suggestions for creator cards
+    const replacements = {};
+    selected.forEach(character => {
+      if (character.id === 'jynxzi' || character.id === 'juicyj' || character.id === 'thebigyazz' || 
+          character.id === 'ken' || character.id === 'oj' || character.id === 'xqc' || 
+          character.id === 'reckers' || character.id === 'bobby' || character.id === 'jynxzi') {
+        
+        // Get all available cards that aren't already in the deck
+        const availableReplacements = characters.filter(char => 
+          char.id !== character.id && 
+          !selected.some(deckChar => deckChar.id === char.id) &&
+          char.id !== 'jynxzi' && char.id !== 'juicyj' && char.id !== 'thebigyazz' && 
+          char.id !== 'ken' && char.id !== 'oj' && char.id !== 'xqc' && 
+          char.id !== 'reckers' && char.id !== 'bobby'
+        );
+        
+        if (availableReplacements.length > 0) {
+          // Randomly select a replacement
+          const randomReplacement = availableReplacements[Math.floor(Math.random() * availableReplacements.length)];
+          replacements[character.id] = randomReplacement;
+        }
+      }
+    });
+    
     setDeckCards(selected);
     setSelectedDeck(type);
+    setDeckReplacements(replacements);
   };
 
   const closeDeck = () => {
     setSelectedDeck(null);
     setDeckCards([]);
+    setDeckReplacements({});
   };
 
   const shuffleCharacters = () => {
@@ -506,7 +533,14 @@ function SmashOrPass({ showAgeVerification = false }) {
     setGameState('game');
     setSelectedDeck(null);
     setDeckCards([]);
+    setDeckReplacements({});
     shuffleCharacters();
+  };
+
+  const resumeGame = () => {
+    setShowResults(false);
+    setGameState('game');
+    // Don't reset responses or currentIndex - just continue where they left off
   };
 
   const verifyAge = () => {
@@ -542,7 +576,11 @@ function SmashOrPass({ showAgeVerification = false }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600">
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: `
+          linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)
+        `
+      }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
           <h2 className="text-white text-xl font-bold">Loading Clash Royale Characters...</h2>
@@ -568,23 +606,30 @@ function SmashOrPass({ showAgeVerification = false }) {
     const passedCards = swipedCards.filter(card => card.response === 'pass');
     
     mainGameView = (
-      <div className="h-screen w-screen bg-black relative overflow-hidden">
+      <div className="h-screen w-screen bg-black relative overflow-hidden" style={{
+        background: `
+          linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%),
+          radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.08) 0%, transparent 50%)
+        `,
+        backgroundSize: '100% 100%, 60% 60%, 60% 60%',
+        backgroundPosition: 'center center, 20% 80%, 80% 20%',
+        backgroundRepeat: 'no-repeat'
+      }}>
         {/* Header - Mobile Responsive */}
         <div className="bg-black border-b border-gray-800 px-4 py-3">
           <div className="flex justify-between items-center max-w-6xl mx-auto">
             <div className="flex items-center space-x-2 sm:space-x-6">
-              <h1 className="text-lg sm:text-2xl font-bold text-white">
-                <span className="text-white">Smash</span>
-                <span className="bg-orange-500 text-white px-2 sm:px-3 py-1 rounded-lg ml-1 sm:ml-2 font-bold text-sm sm:text-base">Pass</span>
-              </h1>
-              <div className="text-gray-300 text-xs sm:text-sm font-medium">
-                {currentIndex + 1} of {gameCharacters.length}
-              </div>
+              <img 
+                src="/images/SmashPass.png" 
+                alt="Smash Pass" 
+                className="h-8 sm:h-10"
+              />
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={exitToResults}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors duration-200"
+                className="bg-logo-orange hover:bg-orange-600 text-white px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors duration-200"
               >
                 Results
               </button>
@@ -592,64 +637,15 @@ function SmashOrPass({ showAgeVerification = false }) {
           </div>
         </div>
         
-        <div className="relative z-10 h-full w-full p-2 sm:p-4 flex flex-col lg:flex-row">
-          {/* Mobile: Horizontal layout for passed/smashed cards */}
-          <div className="lg:hidden flex justify-between mb-4 px-2">
-            {/* Left Side - Passed Cards (Mobile) */}
-            <div className="flex flex-col items-center">
-              <div className="text-red-500 text-xs font-bold mb-1">PASSED ({passedCards.length})</div>
-              <div className="grid grid-cols-4 gap-1 max-w-20 border border-gray-700 rounded-lg p-1 bg-gray-900">
-              {Array.from({ length: 8 }, (_, index) => {
-                const card = passedCards.slice(-8).reverse()[index];
-                return (
-                  <div 
-                    key={index}
-                    className="w-4 h-4 rounded overflow-hidden border border-red-400 bg-gray-800"
-                  >
-                    {card ? (
-                      <img
-                        src={card.character.imageUrl}
-                        alt={card.character.name}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-700"></div>
-                    )}
-                  </div>
-                );
-              })}
-              </div>
-            </div>
-            
-            {/* Right Side - Smashed Cards (Mobile) */}
-            <div className="flex flex-col items-center">
-              <div className="text-orange-500 text-xs font-bold mb-1">SMASHED ({smashedCards.length})</div>
-              <div className="grid grid-cols-4 gap-1 max-w-20 border border-gray-700 rounded-lg p-1 bg-gray-900">
-              {Array.from({ length: 8 }, (_, index) => {
-                const card = smashedCards.slice(-8).reverse()[index];
-                return (
-                  <div 
-                    key={index}
-                    className="w-4 h-4 rounded overflow-hidden border border-orange-400 bg-gray-800"
-                  >
-                    {card ? (
-                      <img
-                        src={card.character.imageUrl}
-                        alt={card.character.name}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-700"></div>
-                    )}
-                  </div>
-                );
-              })}
-              </div>
-            </div>
+        <div className="relative z-10 h-full w-full p-3 sm:p-4 flex flex-col lg:flex-row lg:justify-between overflow-hidden lg:max-w-6xl lg:mx-auto">
+          {/* Mobile: Simple text counters */}
+          <div className="lg:hidden flex justify-between items-center mb-3 px-4 text-xs text-gray-300">
+            <span>❌ Passed: {passedCards.length}</span>
+            <span>⚡ Smashed: {smashedCards.length}</span>
           </div>
 
           {/* Desktop: Left Side - Passed Cards */}
-          <div className="hidden lg:flex w-48 flex-col items-center justify-center">
+          <div className="hidden lg:flex w-32 flex-col items-center justify-start pt-16">
             <div className="text-red-500 text-sm font-bold mb-2">PASSED ({passedCards.length})</div>
             <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
               {Array.from({ length: 20 }, (_, index) => {
@@ -657,7 +653,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                 return (
                   <div 
                     key={index}
-                    className="w-16 h-16 rounded-lg overflow-hidden border-2 border-red-500 bg-gray-800 transition-transform duration-200"
+                    className="w-12 h-12 rounded-lg overflow-hidden border-2 border-red-500 bg-gray-800 transition-transform duration-200"
                     style={{ zIndex: 100 - index }}
                   >
                     {card ? (
@@ -678,23 +674,30 @@ function SmashOrPass({ showAgeVerification = false }) {
           </div>
 
           {/* Center - Main Game Area */}
-          <div className="flex-1 flex flex-col max-w-4xl mx-auto px-2 lg:px-4">
+          <div className="flex-1 flex flex-col max-w-4xl px-2 lg:px-8 min-h-0">
             {/* Progress Bar */}
-            <div className="text-center mb-4 lg:mb-6">
-              <div className="bg-gray-800 rounded-full h-2 lg:h-3 mb-2 overflow-hidden">
+            <div className="text-center mb-2">
+              <div className="bg-gray-800 rounded-full h-2 mb-2 overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 lg:h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
+                  className="bg-gradient-to-r from-logo-orange to-orange-600 h-2 rounded-full transition-all duration-500 ease-out shadow-lg"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
             </div>
 
+            {/* Card Counter - Moved to logical location below progress bar */}
+            <div className="text-center mb-4">
+              <div className="text-gray-300 text-sm font-medium">
+                Card {currentIndex + 1} of {gameCharacters.length}
+              </div>
+            </div>
+
             {/* Animated Card Stack Display */}
-            <div className="flex-1 flex items-center justify-center min-h-0 relative">
+            <div className="flex-1 flex items-start justify-center min-h-0 relative pt-3 pb-24">
               {/* Card Stack Container - Mobile Responsive */}
-              <div className="relative w-72 h-80 sm:w-80 sm:h-96">
+              <div className="relative w-72 h-96 sm:w-80 sm:h-[30rem]">
                 {/* Action Buttons - Mobile Responsive */}
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-2 sm:gap-4 w-72 sm:w-80 z-50" style={{ bottom: '-70px' }}>
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-3 sm:gap-4 w-72 sm:w-80 z-50" style={{ bottom: '-72px' }}>
                   <button
                     onClick={() => handleResponse('pass')}
                     disabled={cardAnimationState !== 'idle'}
@@ -713,7 +716,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                     <button
                       onClick={() => handleResponse('smash')}
                       disabled={cardAnimationState !== 'idle'}
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-base sm:text-lg transition-all duration-200 transform active:scale-95 hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap touch-manipulation"
+                      className="flex-1 bg-gradient-to-r from-logo-orange to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl text-base sm:text-lg transition-all duration-200 transform active:scale-95 hover:scale-105 shadow-lg border-0 uppercase tracking-wide disabled:transform-none whitespace-nowrap touch-manipulation"
                       style={{
                         boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
@@ -801,14 +804,14 @@ function SmashOrPass({ showAgeVerification = false }) {
                 {/* Main card with animation */}
                 {cardStack.length > 0 && (
                   <div
-                    className={`absolute inset-0 transition-all duration-300 ease-out card-hover ${
+                    className={`absolute inset-0 transition-all duration-200 ease-out card-hover ${
                       cardAnimationState === 'idle' ? 'card-reveal' : ''
                     }`}
                     style={{
                       zIndex: cardStack[0].zIndex,
                       transform: `
-                        translateX(${slideDirection === 'smash' ? slideProgress * 400 : slideDirection === 'pass' ? -slideProgress * 400 : 0}px)
-                        translateY(${slideProgress * 50}px)
+                        translateX(${slideDirection === 'smash' ? slideProgress * 300 : slideDirection === 'pass' ? -slideProgress * 300 : 0}px)
+                        translateY(${slideProgress * 30}px)
                         rotate(${cardRotation}deg)
                         scale(${cardScale})
                       `,
@@ -816,7 +819,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                     }}
                   >
                     <div className="w-full h-full bg-gray-900 rounded-2xl border-2 border-gray-600 shadow-2xl overflow-hidden card-stack-depth">
-                      <div className="relative w-full h-full">
+                      <div className="relative w-full h-full flex flex-col">
                         {/* Character Name */}
                         <div className="p-3 text-center">
                           <h2 className="text-xl font-black text-white drop-shadow-lg">
@@ -824,9 +827,9 @@ function SmashOrPass({ showAgeVerification = false }) {
                           </h2>
                         </div>
                         
-                        {/* Character Image */}
-                        <div className="w-full h-52 flex items-center justify-center p-2">
-                          <div className="w-44 h-44 rounded-xl overflow-hidden shadow-lg">
+                        {/* Character Image - Increased size to fill extra space */}
+                        <div className="w-full h-60 sm:h-64 flex items-center justify-center p-3">
+                          <div className="w-44 h-44 sm:w-48 sm:h-48 rounded-xl overflow-hidden shadow-lg">
                             <img
                               src={cardStack[0].character.imageUrl}
                               alt={cardStack[0].character.name}
@@ -835,21 +838,23 @@ function SmashOrPass({ showAgeVerification = false }) {
                           </div>
                         </div>
                         
-                        {/* Character Info */}
+                        {/* Identifiers - Rarity and Elixir */}
                         <div className="p-3 text-center">
-                          <p className="text-gray-300 text-sm mb-3 leading-tight">
-                            {cardStack[0].character.description}
-                          </p>
-                          
-                          {/* Rarity and Elixir */}
-                          <div className="flex justify-center items-center space-x-4">
-                            <div className={`px-3 py-1 rounded-full text-xs font-black text-white bg-black bg-opacity-80 backdrop-blur-sm border ${getRarityColor(cardStack[0].character.rarity)}`}>
+                          <div className="flex justify-center items-center space-x-3">
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-black text-white bg-black bg-opacity-80 backdrop-blur-sm border ${getRarityColor(cardStack[0].character.rarity)}`}>
                               {cardStack[0].character.rarity.toUpperCase()}
                             </div>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shadow-lg ${getElixirColor(cardStack[0].character.elixir)}`}>
+                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-lg ${getElixirColor(cardStack[0].character.elixir)}`}>
                               {cardStack[0].character.elixir}
                             </div>
                           </div>
+                        </div>
+                        
+                        {/* Description - Pushed to very bottom of card */}
+                        <div className="mt-auto p-3 text-center bg-gray-800 bg-opacity-50 rounded-b-2xl">
+                          <p className="text-gray-200 text-xs sm:text-sm leading-tight">
+                            {cardStack[0].character.description}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -876,16 +881,16 @@ function SmashOrPass({ showAgeVerification = false }) {
             </div>
 
             {/* Instructions */}
-            <div className="text-center mt-4 mb-2 flex-shrink-0">
-              <p className="text-white text-xs sm:text-sm opacity-80 font-medium px-4">
-                <span className="block sm:inline">Tap <span className="text-red-400 font-bold">PASS</span> or <span className="text-orange-400 font-bold">SMASH</span> to make your choice!</span>
-                <span className="hidden sm:inline text-gray-300 text-sm"><br />Or use ← (left arrow) for PASS and → (right arrow) for SMASH</span>
+            <div className="text-center mt-4 flex-shrink-0">
+              <p className="text-white text-xs opacity-50 font-medium px-4">
+                <span className="sm:inline">Tap <span className="text-red-400 font-bold">PASS</span> or <span className="text-orange-400 font-bold">SMASH</span></span>
+                <span className="hidden sm:inline text-gray-300 text-xs"> • Use ← → arrows</span>
               </p>
             </div>
           </div>
 
           {/* Desktop: Right Side - Smashed Cards */}
-          <div className="hidden lg:flex w-48 flex-col items-center justify-center">
+          <div className="hidden lg:flex w-32 flex-col items-center justify-start pt-16">
             <div className="text-orange-500 text-sm font-bold mb-2">SMASHED ({smashedCards.length})</div>
             <div className="grid grid-cols-2 gap-1 max-h-96 overflow-y-auto scrollbar-hide border-2 border-gray-700 rounded-lg p-2 bg-gray-900 min-h-96 w-full place-items-center">
               {Array.from({ length: 20 }, (_, index) => {
@@ -893,7 +898,7 @@ function SmashOrPass({ showAgeVerification = false }) {
                 return (
                   <div 
                     key={index}
-                    className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-500 bg-gray-800 transition-transform duration-200"
+                    className="w-12 h-12 rounded-lg overflow-hidden border-2 border-orange-500 bg-gray-800 transition-transform duration-200"
                     style={{ zIndex: 100 - index }}
                   >
                     {card ? (
@@ -953,13 +958,17 @@ function SmashOrPass({ showAgeVerification = false }) {
 
 
 
-        {/* Footer */}
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm opacity-70 z-40">
-          <p>
-            created by: <a href="https://x.com/tribegaming" target="_blank" rel="noopener noreferrer" className="font-semibold text-orange-400 hover:text-orange-300 underline">@biglunchclub</a> - 
-            <a href="https://www.stjude.org/give.html" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300 underline ml-1">support</a> - 
-            <button onClick={() => setShowSuggestionsModal(true)} className="text-orange-400 hover:text-orange-300 underline ml-1 bg-transparent border-none cursor-pointer">request cards/collaborate</button>
-          </p>
+        {/* Footer - Better Separated */}
+        <div className="fixed bottom-0 left-0 right-0 z-10">
+          <div className="bg-gradient-to-t from-black via-black/80 to-transparent pt-6 pb-2">
+            <div className="flex flex-row items-center justify-center gap-1 sm:gap-2 whitespace-nowrap text-white text-xs opacity-70">
+              <span>by: <a href="https://x.com/tribegaming" target="_blank" rel="noopener noreferrer" className="font-semibold text-orange-400 hover:text-orange-300 underline">@trb</a></span>
+              <span>•</span>
+              <span><a href="https://www.stjude.org/give.html" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300 underline">support</a></span>
+              <span>•</span>
+              <button onClick={() => setShowSuggestionsModal(true)} className="text-orange-400 hover:text-orange-300 underline bg-transparent border-none cursor-pointer">contact</button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -974,10 +983,11 @@ function SmashOrPass({ showAgeVerification = false }) {
             <div className="text-center">
               {/* Logo */}
               <div className="mb-8">
-                <h1 className="text-4xl font-bold text-white mb-2">
-                  <span className="text-white">Smash</span>
-                  <span className="bg-orange-500 text-white px-2 py-1 rounded">Pass</span>
-                </h1>
+                <img 
+                  src="/images/SmashPass.png" 
+                  alt="Smash Pass" 
+                  className="h-16 mx-auto"
+                />
               </div>
               
               {/* Age Verification Content */}
@@ -995,7 +1005,7 @@ function SmashOrPass({ showAgeVerification = false }) {
               <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <button
                   onClick={verifyAge}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded transition-all duration-300"
+                  className="flex-1 bg-logo-orange hover:bg-orange-600 text-white font-bold py-3 px-6 rounded transition-all duration-300"
                 >
                   I am 18 or older - Enter
                 </button>
@@ -1015,13 +1025,12 @@ function SmashOrPass({ showAgeVerification = false }) {
       <div className={`${gameState === 'age-verification' ? 'blur-sm' : ''}`}>
         {/* Landing Page */}
         {gameState === 'landing' && (
-          <div className="h-screen w-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0">
-              <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-              <div className="absolute top-40 right-10 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-              <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-            </div>
+          <div className="h-screen w-screen relative overflow-hidden" style={{
+            background: `
+              linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)
+            `
+          }}>
+
             
             <div className="relative z-10 h-full w-full p-4 flex items-center justify-center">
               <div className="max-w-6xl mx-auto w-full">
@@ -1078,66 +1087,102 @@ function SmashOrPass({ showAgeVerification = false }) {
           const smashPercentage = totalRated > 0 ? Math.round((smashList.length / totalRated) * 100) : 0;
 
           return (
-            <div className="h-screen w-screen bg-black p-4 flex items-center justify-center">
-              <div className="max-w-4xl mx-auto w-full">
-                <div className="text-center mb-8 animate-fade-in">
-                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+            <div className="min-h-screen w-full p-3 sm:p-4 flex items-start sm:items-center justify-center overflow-y-auto" style={{
+              background: `
+                linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)
+              `
+            }}>
+              <div className="w-full max-w-4xl mx-auto px-2 sm:px-4">
+                <div className="text-center mb-6 sm:mb-8 animate-fade-in">
+                  <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-3 sm:mb-4">
                     Your Results! 🏆
                   </h1>
                   
+                  {/* Progress Info - Show if game is incomplete */}
+                  {totalRated < characters.length ? (
+                    <div className="text-center mb-4">
+                      <p className="text-blue-300 text-sm sm:text-base">
+                        You've rated {totalRated} out of {characters.length} characters
+                      </p>
+                      <div className="w-full max-w-xs mx-auto mt-2 bg-gray-800 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${(totalRated / characters.length) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center mb-4">
+                      <p className="text-green-300 text-sm sm:text-base font-semibold">
+                        🎉 Congratulations! You've rated all {characters.length} characters!
+                      </p>
+                    </div>
+                  )}
+                  
                   {/* Stats Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-4">
-                      <div className="text-3xl font-black text-white">{totalRated}</div>
-                      <div className="text-sm text-gray-300">Total Rated</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
+                    <div className="bg-gray-900 border-2 border-gray-700 rounded-xl sm:rounded-2xl p-2 sm:p-4">
+                      <div className="text-xl sm:text-2xl md:text-3xl font-black text-white">{totalRated}</div>
+                      <div className="text-xs sm:text-sm text-gray-300">Total Rated</div>
                     </div>
-                    <div className="bg-gray-900 border-2 border-orange-500 rounded-2xl p-4">
-                      <div className="text-3xl font-black text-orange-400">{smashList.length}</div>
-                      <div className="text-sm text-orange-300">Smash</div>
+                    <div className="bg-gray-900 border-2 border-orange-500 rounded-xl sm:rounded-2xl p-2 sm:p-4">
+                      <div className="text-xl sm:text-2xl md:text-3xl font-black text-orange-400">{smashList.length}</div>
+                      <div className="text-xs sm:text-sm text-orange-300">Smash</div>
                     </div>
-                    <div className="bg-gray-900 border-2 border-red-500 rounded-2xl p-4">
-                      <div className="text-3xl font-black text-red-400">{passList.length}</div>
-                      <div className="text-sm text-red-300">Pass</div>
+                    <div className="bg-gray-900 border-2 border-red-500 rounded-xl sm:rounded-2xl p-2 sm:p-4">
+                      <div className="text-xl sm:text-2xl md:text-3xl font-black text-red-400">{passList.length}</div>
+                      <div className="text-xs sm:text-sm text-red-300">Pass</div>
                     </div>
-                    <div className="bg-gray-900 border-2 border-orange-500 rounded-2xl p-4">
-                      <div className="text-3xl font-black text-orange-400">{smashPercentage}%</div>
-                      <div className="text-sm text-orange-300">Smash Rate</div>
+                    <div className="bg-gray-900 border-2 border-orange-500 rounded-xl sm:rounded-2xl p-2 sm:p-4">
+                      <div className="text-xl sm:text-2xl md:text-3xl font-black text-orange-400">{smashPercentage}%</div>
+                      <div className="text-xs sm:text-sm text-orange-300">Smash Rate</div>
                     </div>
                   </div>
                 
-                  <div className="space-x-4">
+                  <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+                    {/* Resume Button - Only show if there are cards left to rate */}
+                    {totalRated < characters.length && (
+                      <button
+                        onClick={resumeGame}
+                        className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-base sm:text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                      >
+                        🔄 Resume Game ({totalRated}/{characters.length})
+                      </button>
+                    )}
+                    
+                    {/* Play Again Button - Different text based on completion */}
                     <button
                       onClick={resetGame}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                      className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-base sm:text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
                     >
-                      Play Again
+                      {totalRated < characters.length ? '🎮 Play Again' : '🔄 Start New Game'}
                     </button>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                   {/* Smash List */}
-                  <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-6 shadow-2xl animate-slide-in">
-                    <h2 className="text-2xl font-bold text-orange-400 mb-4 flex items-center">
-                      <span className="text-3xl mr-2">🍆</span>
+                  <div className="bg-gray-900 border-2 border-gray-700 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-2xl animate-slide-in">
+                    <h2 className="text-xl sm:text-2xl font-bold text-orange-400 mb-3 sm:mb-4 flex items-center">
+                      <span className="text-2xl sm:text-3xl mr-2">🍆</span>
                       Smash ({smashList.length})
                     </h2>
                     <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
                       {smashList.map(character => (
-                        <div key={character.id} className="flex items-center space-x-3 p-3 bg-gray-800 border border-gray-600 rounded-lg">
+                        <div key={character.id} className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-800 border border-gray-600 rounded-lg">
                           <img
                             src={character.imageUrl}
                             alt={character.name}
-                            className="w-12 h-12 rounded-lg object-cover"
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0"
                             onError={(e) => {
                               e.target.style.display = 'none';
                             }}
                           />
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-white">{character.name}</h3>
-                            <p className="text-sm text-gray-300">{character.description}</p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-white text-sm sm:text-base truncate">{character.name}</h3>
+                            <p className="text-xs sm:text-sm text-gray-300 line-clamp-2">{character.description}</p>
                           </div>
-                          <div className={`px-2 py-1 rounded text-xs font-bold text-white ${getElixirColor(character.elixir)}`}>
+                          <div className={`px-2 py-1 rounded text-xs font-bold text-white flex-shrink-0 ${getElixirColor(character.elixir)}`}>
                             {character.elixir}
                           </div>
                         </div>
@@ -1157,27 +1202,27 @@ function SmashOrPass({ showAgeVerification = false }) {
                   </div>
 
                   {/* Pass List */}
-                  <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-6 shadow-2xl animate-slide-in">
-                    <h2 className="text-2xl font-bold text-red-400 mb-4 flex items-center">
-                      <span className="text-3xl mr-2">💔</span>
+                  <div className="bg-gray-900 border-2 border-gray-700 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-2xl animate-slide-in">
+                    <h2 className="text-xl sm:text-2xl font-bold text-red-400 mb-3 sm:mb-4 flex items-center">
+                      <span className="text-2xl sm:text-3xl mr-2">💔</span>
                       Pass ({passList.length})
                     </h2>
                     <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
                       {passList.map(character => (
-                        <div key={character.id} className="flex items-center space-x-3 p-3 bg-gray-800 border border-gray-600 rounded-lg">
+                        <div key={character.id} className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-800 border border-gray-600 rounded-lg">
                           <img
                             src={character.imageUrl}
                             alt={character.name}
-                            className="w-12 h-12 rounded-lg object-cover"
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0"
                             onError={(e) => {
                               e.target.style.display = 'none';
                             }}
                           />
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-white">{character.name}</h3>
-                            <p className="text-sm text-gray-300">{character.description}</p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-white text-sm sm:text-base truncate">{character.name}</h3>
+                            <p className="text-xs sm:text-sm text-gray-300 line-clamp-2">{character.description}</p>
                           </div>
-                          <div className={`px-2 py-1 rounded text-xs font-bold text-white ${getElixirColor(character.elixir)}`}>
+                          <div className={`px-2 py-1 rounded text-xs font-bold text-white flex-shrink-0 ${getElixirColor(character.elixir)}`}>
                             {character.elixir}
                           </div>
                         </div>
@@ -1266,6 +1311,17 @@ function SmashOrPass({ showAgeVerification = false }) {
                       
                       <h3 className="font-black text-white text-sm mb-1">{character.name}</h3>
                       <p className="text-gray-300 text-xs mb-2 leading-tight">{character.description}</p>
+                      
+                      {/* Replacement Suggestion for Creator Cards */}
+                      {deckReplacements[character.id] && (
+                        <div className="mb-2 p-2 bg-gray-800 rounded-lg border border-orange-500">
+                          <div className="text-xs text-orange-400 font-semibold mb-1">💡 Suggested Replacement:</div>
+                          <div className="text-xs text-gray-300">
+                            {deckReplacements[character.id].name} • {deckReplacements[character.id].rarity} • {deckReplacements[character.id].elixir} elixir
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="text-xs text-gray-400 font-medium">
                         {character.rarity} • {character.elixir} elixir
                       </div>

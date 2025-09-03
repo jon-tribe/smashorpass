@@ -100,6 +100,19 @@
     animation-duration: 0.3s;
   }
   
+  /* Mobile viewport height fix */
+  body, html {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  }
+  
+  /* Prevent text overlap and ensure proper spacing */
+  * {
+    line-height: 1.4;
+    letter-spacing: normal;
+  }
+  
   /* Mobile-specific touch interactions */
   .touch-manipulation {
     touch-action: manipulation;
@@ -147,6 +160,37 @@
       transform: translateX(300px) rotate(15deg) scale(0.8);
       opacity: 0;
     }
+  }
+  
+  /* Ensure no content forces scrolling */
+  .h-screen {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  
+  /* Mobile background optimization */
+  .h-screen.w-screen {
+    background-attachment: scroll !important; /* Better for mobile performance */
+  }
+  
+  /* Add subtle background animation for mobile */
+  @keyframes mobileBackgroundShift {
+    0% {
+      background-position: 0% 0%, 100% 0%, 50% 50%, 80% 100%, 0% 0%;
+    }
+    50% {
+      background-position: -10% -5%, 110% -5%, 45% 55%, 85% 95%, -5% -5%;
+    }
+    100% {
+      background-position: 0% 0%, 100% 0%, 50% 50%, 80% 100%, 0% 0%;
+    }
+  }
+  
+  /* Apply animation to background on mobile */
+  .h-screen.w-screen {
+    animation: mobileBackgroundShift 20s ease-in-out infinite;
   }
 }
 
