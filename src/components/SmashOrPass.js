@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import characters from '../data/characters.json';
+import { hasValidCardId, getOfficialCardId } from '../data/cardIdMapping';
 
 function SmashOrPass({ showAgeVerification = false }) {
   const [responses, setResponses] = useState({});
@@ -10,7 +11,7 @@ function SmashOrPass({ showAgeVerification = false }) {
   const [pendingResponse, setPendingResponse] = useState(null);
   const [selectedDeck, setSelectedDeck] = useState(null); // 'smash' or 'pass' or null
   const [deckCards, setDeckCards] = useState([]);
-  const [deckReplacements, setDeckReplacements] = useState({});
+
   const [shuffledCharacters, setShuffledCharacters] = useState([]);
   
   // Simple card stack state
@@ -414,9 +415,12 @@ function SmashOrPass({ showAgeVerification = false }) {
   };
 
   const createDeck = (type) => {
+    // Filter out creator cards from the start
+    const creatorCardIds = ['jynxzi', 'juicyj', 'thebigyazz', 'ken', 'oj', 'xqc', 'reckers', 'bobby', 'Mr-ClashBroyale'];
+    
     const availableCards = type === 'smash' 
-      ? characters.filter(char => responses[char.id] === 'smash')
-      : characters.filter(char => responses[char.id] === 'pass');
+      ? characters.filter(char => responses[char.id] === 'smash' && !creatorCardIds.includes(char.id))
+      : characters.filter(char => responses[char.id] === 'pass' && !creatorCardIds.includes(char.id));
     
     if (availableCards.length === 0) {
       alert(`No ${type} cards available!`);
@@ -427,39 +431,63 @@ function SmashOrPass({ showAgeVerification = false }) {
     const shuffled = [...availableCards].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, Math.min(8, availableCards.length));
     
-    // Generate replacement suggestions for creator cards
-    const replacements = {};
-    selected.forEach(character => {
-      if (character.id === 'jynxzi' || character.id === 'juicyj' || character.id === 'thebigyazz' || 
-          character.id === 'ken' || character.id === 'oj' || character.id === 'xqc' || 
-          character.id === 'reckers' || character.id === 'bobby' || character.id === 'jynxzi') {
-        
-        // Get all available cards that aren't already in the deck
-        const availableReplacements = characters.filter(char => 
-          char.id !== character.id && 
-          !selected.some(deckChar => deckChar.id === char.id) &&
-          char.id !== 'jynxzi' && char.id !== 'juicyj' && char.id !== 'thebigyazz' && 
-          char.id !== 'ken' && char.id !== 'oj' && char.id !== 'xqc' && 
-          char.id !== 'reckers' && char.id !== 'bobby'
-        );
-        
-        if (availableReplacements.length > 0) {
-          // Randomly select a replacement
-          const randomReplacement = availableReplacements[Math.floor(Math.random() * availableReplacements.length)];
-          replacements[character.id] = randomReplacement;
-        }
-      }
-    });
-    
     setDeckCards(selected);
     setSelectedDeck(type);
-    setDeckReplacements(replacements);
+
   };
 
   const closeDeck = () => {
     setSelectedDeck(null);
     setDeckCards([]);
-    setDeckReplacements({});
+  };
+
+  // Function to generate Clash Royale deck link
+  const generateDeckLink = (cards) => {
+    try {
+      // Since we exclude creator cards during deck creation, all cards should be valid
+      const validCards = cards.filter(card => hasValidCardId(card.id));
+      
+      if (validCards.length < 8) {
+        // If we don't have 8 valid cards, fill with some common cards
+        const commonCards = ['skeletons', 'knight', 'archers', 'goblins', 'zap', 'fireball', 'giant', 'hog-rider'];
+        const neededCards = 8 - validCards.length;
+        
+        for (let i = 0; i < neededCards; i++) {
+          const commonCard = characters.find(char => char.id === commonCards[i] && !validCards.some(vc => vc.id === char.id));
+          if (commonCard) {
+            validCards.push(commonCard);
+          }
+        }
+      }
+      
+      // Take first 8 cards
+      const deckCards = validCards.slice(0, 8);
+      
+      // Generate deck string
+      const deckString = deckCards.map(card => getOfficialCardId(card.id)).join(';');
+      
+      // Generate timestamp
+      const timestamp = Math.floor(Date.now() / 1000);
+      
+      // Create the full deck link
+      return `https://link.clashroyale.com/en/?clashroyale://copyDeck?deck=${deckString}&l=Royals&slots=0;0;0;0;0;0;0;0&tt=${timestamp}`;
+    } catch (error) {
+      console.error('Error generating deck link:', error);
+      return null;
+    }
+  };
+
+
+
+  // Function to open deck link in new tab (like official platforms)
+  const openDeckInClashRoyale = () => {
+    const deckLink = generateDeckLink(deckCards);
+    if (deckLink) {
+      // Open in new tab - this will show the official Clash Royale deck page
+      window.open(deckLink, '_blank');
+    } else {
+      alert('Unable to generate deck link. Please try again.');
+    }
   };
 
   const shuffleCharacters = () => {
@@ -509,7 +537,6 @@ function SmashOrPass({ showAgeVerification = false }) {
     setGameState('game');
     setSelectedDeck(null);
     setDeckCards([]);
-    setDeckReplacements({});
     shuffleCharacters();
   };
 
@@ -931,7 +958,7 @@ function SmashOrPass({ showAgeVerification = false }) {
 
 
         {/* Footer - Better Separated */}
-        <div className="fixed bottom-0 left-0 right-0 z-0">
+        <div className="fixed bottom-0 left-0 right-0 z-40">
           <div className="bg-gradient-to-t from-black via-black/80 to-transparent pt-6 pb-2">
             <div className="flex flex-row items-center justify-center gap-1 sm:gap-2 whitespace-nowrap text-white text-xs opacity-70">
               <span>by: <a href="https://x.com/tribegaming" target="_blank" rel="noopener noreferrer" className="font-semibold text-orange-400 hover:text-orange-300 underline">@trb</a></span>
@@ -1224,78 +1251,60 @@ function SmashOrPass({ showAgeVerification = false }) {
 
       {/* Deck Display Modal */}
       {selectedDeck && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-black border-2 border-gray-700 rounded-3xl p-8 max-w-6xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-black text-white mb-2">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 animate-fade-in p-2 sm:p-4">
+          <div className="bg-gray-900 border border-gray-600 rounded-2xl p-6 w-full max-w-5xl mx-auto shadow-2xl">
+            <div className="text-center mb-6 relative">
+              <h2 className="text-2xl sm:text-3xl font-black text-white mb-4">
                 {selectedDeck === 'smash' ? '💚 Smash Deck' : '💔 Pass Deck'}
               </h2>
-              <p className="text-gray-300 text-lg">
-                {deckCards.length} randomly selected cards
-              </p>
+              
+              {/* Copy to Clash Royale Button */}
+              <button
+                onClick={openDeckInClashRoyale}
+                className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+              >
+                🎮 Copy Deck
+              </button>
+              
+
+              
               <button
                 onClick={closeDeck}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold"
+                className="absolute top-0 right-0 text-gray-400 hover:text-white text-2xl font-bold"
               >
                 ✕
               </button>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
               {deckCards.map((character, index) => (
-                <div key={character.id} className="group relative animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                  <div className={`absolute -inset-1 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse ${
-                    selectedDeck === 'smash' 
-                      ? 'bg-gradient-to-r from-green-600 to-blue-600' 
-                      : 'bg-gradient-to-r from-red-600 to-pink-600'
-                  }`}></div>
-                  <div className="relative bg-black rounded-2xl p-4 border border-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-                    <div className="text-center">
-                      <div className="relative mb-3">
-                        <div className="w-24 h-24 md:w-32 md:h-32 mx-auto rounded-2xl overflow-hidden shadow-lg border-2 border-gray-700 bg-gray-800">
-                          <img
-                            src={character.imageUrl}
-                            alt={character.name}
-                            className="w-full h-full object-contain p-1"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                          <div 
-                            className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-300 text-xs font-semibold"
-                            style={{ display: 'none' }}
-                          >
-                            {character.name}
-                          </div>
-                        </div>
-                        
-                        {/* Rarity Badge */}
-                        <div className={`absolute top-1 right-1 px-2 py-1 rounded-full text-xs font-black text-white bg-black bg-opacity-80 backdrop-blur-sm border ${getRarityColor(character.rarity)}`}>
-                          {character.rarity.toUpperCase()}
-                        </div>
-                        
-                        {/* Elixir Cost */}
-                        <div className={`absolute top-1 left-1 w-6 h-6 rounded-full flex items-center justify-center text-white font-black text-xs shadow-lg ${getElixirColor(character.elixir)}`}>
-                          {character.elixir}
-                        </div>
+                <div key={character.id} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="bg-gray-900 rounded-xl p-3 border border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div className="relative">
+                      <img
+                        src={character.imageUrl}
+                        alt={character.name}
+                        className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-lg object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div 
+                        className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-lg bg-gray-800 flex items-center justify-center text-gray-300 text-xs font-semibold"
+                        style={{ display: 'none' }}
+                      >
+                        {character.name}
                       </div>
                       
-                      <h3 className="font-black text-white text-sm mb-1">{character.name}</h3>
-                      <p className="text-gray-300 text-xs mb-2 leading-tight">{character.description}</p>
+                      {/* Elixir badge - top-left corner, authentic Clash Royale style */}
+                      <div className="absolute top-1 left-1 w-6 h-6 rounded-full flex items-center justify-center text-white font-black text-xs bg-gradient-to-b from-purple-400 to-purple-600 border border-white shadow-lg">
+                        {character.elixir}
+                      </div>
                       
-                      {/* Replacement Suggestion for Creator Cards */}
-                      {deckReplacements[character.id] && (
-                        <div className="mb-2 p-2 bg-gray-800 rounded-lg border border-orange-500">
-                          <div className="text-xs text-orange-400 font-semibold mb-1">💡 Suggested Replacement:</div>
-                          <div className="text-xs text-gray-300">
-                            {deckReplacements[character.id].name} • {deckReplacements[character.id].rarity} • {deckReplacements[character.id].elixir} elixir
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="text-xs text-gray-400 font-medium">
-                        {character.rarity} • {character.elixir} elixir
+                      {/* Card name below image */}
+                      <div className="mt-2 text-center">
+                        <p className="text-white text-xs font-medium truncate">{character.name}</p>
                       </div>
                     </div>
                   </div>
