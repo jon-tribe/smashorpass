@@ -4,6 +4,7 @@ import characters from './data/characters.json';
 
 // Import the existing SmashOrPass component
 import SmashOrPass from './components/SmashOrPass';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const [currentGame, setCurrentGame] = useState('home'); // 'home', 'smash-or-pass'
@@ -100,9 +101,19 @@ function App() {
   // Render the appropriate component based on current game
   switch (currentGame) {
     case 'smash-or-pass':
-      return <SmashOrPass showAgeVerification={showAgeVerification} />;
+      return (
+        <>
+          <SmashOrPass showAgeVerification={showAgeVerification} />
+          <Analytics />
+        </>
+      );
     default:
-      return renderHomePage();
+      return (
+        <>
+          {renderHomePage()}
+          <Analytics />
+        </>
+      );
   }
 }
 
