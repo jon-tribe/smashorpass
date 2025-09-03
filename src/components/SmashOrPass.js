@@ -76,7 +76,9 @@ function SmashOrPass({ showAgeVerification = false }) {
       })).filter(particle => particle.life > 0));
     };
 
-    const interval = setInterval(animateParticles, 16); // ~60fps
+    // Mobile-optimized animation frame rate
+    const frameRate = window.innerWidth < 640 ? 32 : 16; // 30fps on mobile, 60fps on desktop
+    const interval = setInterval(animateParticles, frameRate);
     return () => clearInterval(interval);
   }, [particles]);
 
@@ -233,7 +235,13 @@ function SmashOrPass({ showAgeVerification = false }) {
   }, [shuffledCharacters, currentIndex, jynxziButtonClicks, cardStack, jynxziRequiredClicks]);
 
   const createParticles = (response) => {
-    const particleCount = 8;
+    // Disable particles on very low-end mobile devices for better performance
+    if (window.innerWidth < 480) {
+      return;
+    }
+    
+    // Mobile-optimized particle count
+    const particleCount = window.innerWidth < 640 ? 4 : 8;
     const newParticles = [];
     
     for (let i = 0; i < particleCount; i++) {
@@ -810,8 +818,8 @@ function SmashOrPass({ showAgeVerification = false }) {
                     style={{
                       zIndex: cardStack[0].zIndex,
                       transform: `
-                        translateX(${slideDirection === 'smash' ? slideProgress * 300 : slideDirection === 'pass' ? -slideProgress * 300 : 0}px)
-                        translateY(${slideProgress * 30}px)
+                        translateX(${slideDirection === 'smash' ? slideProgress * (window.innerWidth < 640 ? 250 : 300) : slideDirection === 'pass' ? -slideProgress * (window.innerWidth < 640 ? 250 : 300) : 0}px)
+                        translateY(${slideProgress * (window.innerWidth < 640 ? 20 : 30)}px)
                         rotate(${cardRotation}deg)
                         scale(${cardScale})
                       `,
